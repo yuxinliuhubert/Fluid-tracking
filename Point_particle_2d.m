@@ -4,7 +4,7 @@ format long
 %% Data Input
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
-theta_degree = 30; % clock-wise degree, what is the angle of camera rotation before each shot
+theta_degree = 0; % clock-wise degree, what is the angle of camera rotation before each shot
 D = 1e-4; % m, diameter of the fluid element, assuming 3D sphere/2D circle
 delta_T = 1; % s, time between shots
 a = [0 0]; % m/s^2, fluid element acceleration
@@ -33,10 +33,6 @@ O_Y = [delta_O_Y^2, 0; 0, delta_O_VY^2];
 % from measurement
 % M >1
 x_proj = [ % [particle left projection, particle right side projection]
-    0.4 - 1.5*D/2, 0.4 + 1.5*D/2 ; 
-    0.5004-1.2*D/2, 0.5004+1.2*D/2 ; 
-    0.5004-1.2*D/2, 0.5004+1.2*D/2 ; 
-    0.5004-1.2*D/2, 0.5004+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
@@ -44,7 +40,15 @@ x_proj = [ % [particle left projection, particle right side projection]
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
-    ];
+     0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    
+    ]
 
 
 %% Calculations
@@ -66,7 +70,7 @@ xmR = x_proj(1,2);
 syms x0cL x0cR y0c
 eqn = [(x0cL+D)/(y0c+SRD) == xmR/(RDD+SRD); x0cL/(y0c+SRD) == xmL/(SRD+RDD)];
 S = solve(eqn,[x0cL, y0c]);
-xpL = double(S.x0cL);
+xpL = double(S.x0cL)
 yp = double(S.y0c);
 xp(1) = xpL + D/2;
 v = [0 0]; % assume the fluid element isn't moving after first shot
@@ -87,7 +91,7 @@ for i = 2:NOS % process each shot
     B = [1/2*delta_T^2; delta_T]; % multiplied by acceleration 
 
     % take a guess
-    x_kp = A * x_state(i-1,:)' + B*a(1);
+    x_kp = A * x_state(i-1,:)' + B*a(1)
     y_kp = A * y_state(i-1,:)' + B*a(2);
 
     % Calculate new covariance matrix
@@ -100,7 +104,7 @@ for i = 2:NOS % process each shot
 
     % Import Observation
     [e, vk] = getData(x_proj, i, D, SRD, RDD, angle_transformation, x_state, y_state, delta_T);
-    xk = eye(2)*[e(1); vk(1)];
+    xk = eye(2)*[e(1); vk(1)]
     xp(i) = e(1);
     yk = eye(2)*[e(2); vk(2)];
 
@@ -130,7 +134,7 @@ function [e,v] = getData(x_proj, index, D, SRD, RDD, angle_transformation, x_sta
     S = solve(eqn,[x0cL, y0c]);
     xpL = double(S.x0cL);
 
-    e = angle_transformation^(index-1) * [double(S.y0c);xpL + D/2];
+    e = angle_transformation^(index-1) * [xpL + D/2;double(S.y0c)];
     vx = (e(1) - x_state(index-1, 1))/delta_T;
     vy = (e(2) - y_state(index-1, 1))/delta_T;
     v = [vx vy];
