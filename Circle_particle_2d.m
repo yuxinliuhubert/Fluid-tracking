@@ -1,4 +1,4 @@
-%% Point Particle Static Position Tracking in 2D (view from top)
+%% Circle Particle Static Position Tracking in 2D (view from top)
 % We assume that the particle is a point particle in 2D with almost zero velocity.  
 format long
 %% Data Input
@@ -40,15 +40,14 @@ x_proj = [ % [particle left projection, particle right side projection]
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
-     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
     0.502-1.2*D/2, 0.502+1.2*D/2 ;
-    
-    ]
+    0.502-1.2*D/2, 0.502+1.2*D/2 ;
+    ];
 
 
 %% Calculations
