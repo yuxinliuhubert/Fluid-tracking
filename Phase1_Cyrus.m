@@ -10,7 +10,7 @@ a = [0 0]; % m/s^2, fluid element acceleration
 % % True location of particle; could be negative number
 x0 = 0.1; % m, relative to reference
 y0 = 0.1; % m
-noise=5e-4; %the maximum possible deviation of the projection measurement from the perfect measurement 
+noise=5e-3; %the maximum possible deviation of the projection measurement from the perfect measurement 
 
 %% Calculation part 1: projection generation
 theta = theta_degree/180*pi;
