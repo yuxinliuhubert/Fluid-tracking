@@ -1,11 +1,11 @@
 %% Data Input
-function [kalman_position_velocity r0_avg] = Phase1_pt_3d(true_position_3d, noise, delta_T, NOS,theta_degree, SDD, RDD)
+function [kalman_position_velocity, r0_avg] = Phase1_pt_3d(true_position_3d, noise, delta_T, NOS,theta_degree, SRD, RDD)
 format default
-SRD = 1; % m, Source-Reference Distance
-RDD = 1; % m, Reference-Detector (screen) Distance
-% theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
-% NOS = 100; % number of shots
-% delta_T = 1; % s, time between shots
+% SRD = 1; % m, Source-Reference Distance
+% RDD = 1; % m, Reference-Detector (screen) Distance
+% % theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
+% % NOS = 100; % number of shots
+% % delta_T = 1; % s, time between shots
 % % True location of particle; could be negative number
 % x0 = 0.1; y0 = 0.1; z0=0.1;  % in m, relative to reference
 x0 = true_position_3d(1);
@@ -75,6 +75,8 @@ x_k_prev = x_ki;
 y_k_prev = y_ki;
 z_k_prev = z_ki;
 P_k_prev = P_ki;
+
+if (NOS > 2)
 % iteration begins
 for i = 2:height(xyz_measured) 
     
@@ -97,8 +99,8 @@ for i = 2:height(xyz_measured)
 
     % calculate current state
     x_k = x_kp + K*(x_O- eye(length(P_kp))*x_kp);
-    y_k = x_kp + K*(y_O- eye(length(P_kp))*y_kp);
-    z_k = x_kp + K*(z_O- eye(length(P_kp))*z_kp);
+    y_k = y_kp + K*(y_O- eye(length(P_kp))*y_kp);
+    z_k = z_kp + K*(z_O- eye(length(P_kp))*z_kp);
 
     % update the process covariance matrix
     P_k = (eye(length(P_kp)) - K*eye(length(P_kp)))*P_kp;
@@ -110,6 +112,11 @@ for i = 2:height(xyz_measured)
     P_k_prev = P_k;
 
 end
+else 
+
+
+
+end
 
 
 % Using the first measurement as a reference point, now run kalman filter
@@ -119,8 +126,8 @@ end
 
 
 %% Part 3: System output
-kalman_position_velocity = [x_k y_k z_k]
-r0_avg=mean(xyz_measured)
+kalman_position_velocity = [x_k y_k z_k];
+r0_avg=mean(xyz_measured);
 
 
 
@@ -160,3 +167,5 @@ r0_avg=mean(xyz_measured)
    function [r0]= z_proj2r0(proj,theta,SRD,RDD)
    
    end
+
+end

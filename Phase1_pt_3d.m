@@ -75,6 +75,8 @@ x_k_prev = x_ki;
 y_k_prev = y_ki;
 z_k_prev = z_ki;
 P_k_prev = P_ki;
+
+if (NOS > 2)
 % iteration begins
 for i = 2:height(xyz_measured) 
     
@@ -108,6 +110,12 @@ for i = 2:height(xyz_measured)
     y_k_prev = y_k;
     z_k_prev = z_k;
     P_k_prev = P_k;
+
+end
+else 
+x_k = x_ki;
+y_k = y_ki;
+z_k = z_ki;
 
 end
 
