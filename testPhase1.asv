@@ -1,4 +1,4 @@
-function [mean_kalman_deviation_percent, mean_average_deviation_percent] = testPhase1(theta_input, NOS_input, run_input, position_x, position_y, position_z)
+function [mean_kalman_deviation_percent, mean_average_deviation_percent] = testPhase1(theta_input, NOS_input)
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
 theta_degree = theta_input; % clock-wise degree, what is the angle of camera rotation before each shot
@@ -7,13 +7,13 @@ delta_T = 1; % s, time between shots
 noise= 5e-3;
 
 % positions
-x = position_x;
-y = position_y;
-z = position_z;
+x = 0.1;
+y = 0.2;
+z = 0.1;
 
 true_position = [x y z]
 true_mean_position = mean(true_position);
-runs = run_input;
+runs = 1000;
 for j = 1:length(NOS)
 fprintf("Calculating NOS = "+NOS(j)+"\n")
 tic
@@ -80,4 +80,3 @@ ylabel("Mean deviation (%)")
 
 fprintf("\n running Phase 1 Cyrus code...")
 
-end
