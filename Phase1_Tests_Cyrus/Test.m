@@ -1,6 +1,6 @@
 true_position_3d=[0.1,0.1,0.1];NOS=30; theta_degree=30;
 Runs=1000; %number of runs for each value of NOS
-noise_ratio=0.1; %noise_ratio is the ratio of position value to the error for each projection 
+noise_ratio=1; %noise_ratio is the ratio of position value to the error for each projection 
 % for 68% of the time (normal distribution); note that this ratio is not in percent so 0.1 means 10%
 noise=mean(true_position_3d)*noise_ratio;
 
@@ -57,7 +57,7 @@ hold on
 plot(linspace(2,NOS,NOS-1),Consecutive_Result_PercentError)
 %plot(linspace(2,NOS,NOS/2),OriginalBigger_Result_PercentError)
 plot(linspace(2,NOS,NOS-1),BigMatrix_Result_PercentError)
-title(['Rotation degree=', num2str(theta_degree),' Error Ratio=',num2str(noise_ratio*100)],'%' )
+title(['Rotation degree=', num2str(theta_degree),' Nominal Error=',num2str(noise)] )
 xlabel('Number of Shots')
 ylabel('percent error')
 legend('Original','Consecutive','BigMatrix')
