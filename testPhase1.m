@@ -1,10 +1,10 @@
-function [mean_kalman_deviation_percent, mean_average_deviation_percent] = testPhase1(theta_input, NOS_input, run_input, position_x, position_y, position_z)
+function [mean_kalman_deviation_percent, mean_average_deviation_percent] = testPhase1(theta_input, NOS_input, run_input, noise_input, position_x, position_y, position_z)
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
 theta_degree = theta_input; % clock-wise degree, what is the angle of camera rotation before each shot
 NOS = [2:2:NOS_input]; % number of shots
 delta_T = 1; % s, time between shots
-noise= 5e-3;
+noise= noise_input;
 
 % positions
 x = position_x;
