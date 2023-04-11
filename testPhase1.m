@@ -69,9 +69,9 @@ mean_average_deviation_percent = mean_average_deviation/true_position(1)*100
 
 %% graph
 % title(t, "Deviation from true position after " + runs+ " runs when", 'Fontweight','bold')
-plot(NOS,mean_kalman_deviation_percent)
+plot(NOS(2:end),mean_kalman_deviation_percent(2:end))
 hold on
-plot(NOS,mean_average_deviation_percent)
+plot(NOS(2:end),mean_average_deviation_percent(2:end))
 legend(["Kalman" "Avg"])
 title("Mean X deviation from true positions vs. NOS, 1000 runs per NOS");
 xlabel("NOS");
