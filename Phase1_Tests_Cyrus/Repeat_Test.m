@@ -1,0 +1,7 @@
+Test_Cyrus(30,30,0.1)
+Test_Cyrus(30,30,1)
+Test_Cyrus(30,1,0.1)
+Test_Cyrus(30,80,0.1)
+Test_Cyrus(30,80,1)
+Test_Cyrus(30,30,5)
+Test_Cyrus(30,30,0.005)
