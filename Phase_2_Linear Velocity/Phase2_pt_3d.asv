@@ -1,18 +1,22 @@
 %% Data Input
-function [kalman_position_velocity, r0_avg] = Phase3_pt_3d(initial_position_3d, noise, delta_T, NOS,theta_degree)
+function [kalman_position_velocity, r0_avg] = Phase2_pt_3d(true_position_3d, noise, delta_T, NOS,theta_degree, SRD, RDD)
 format default
-SRD = 1; % m, Source-Reference Distance
-RDD = 1; % m, Reference-Detector (screen) Distance
+% SRD = 1; % m, Source-Reference Distance
+% RDD = 1; % m, Reference-Detector (screen) Distance
 % % theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
 % % NOS = 100; % number of shots
-% % delta_T = time between shots
-% % initial_position_3d = [x0;y0;z0], a column vector
+% % delta_T = 1; % s, time between shots
+% % True location of particle; could be negative number
+% x0 = 0.1; y0 = 0.1; z0=0.1;  % in m, relative to reference
+x0 = true_position_3d(1);
+y0 = true_position_3d(2);
+z0 = true_position_3d(3);
 % noise=5e-3; %the 68% chance deviation of the projection measurement from the perfect measurement 
 
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [0.1;t;t^2]; %velocity function
-
+v = [0 0 0]; % linear velovity
+a = [0 0 0]; % m/s^2, fluid element acceleration
 
 % Process error
 delta_P_X = 1e-3; % m
@@ -27,14 +31,13 @@ delta_O_VX = 1.5e-4; % m
 %% Calculation part 1: projection generation
 theta = theta_degree/180*pi;
 % % First shot: without rotation
-r0_0=initial_position_3d;
-M_p = (SRD+RDD)/(SRD+r0_0(2));
-x_proj=[M_p*r0_0+randn*noise/2];
-z_proj=[M_p*r0_0(3)+randn*noise/2];
+r_now=[x0; y0;z0];
+M_p = (SRD+RDD)/(SRD+r_now(2));
+x_proj=[M_p*r_now(1)+randn*noise/2];
+z_proj=[M_p*r_now(3)+randn*noise/2];
 % % Second shot: with theta degrees rotation each time
-for k = 1:NOS-1
-    r0_k=r0_0+integral(v,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
-    r_now=T(r0_k,theta*k);
+for i = 1:NOS-1
+    r_now=T(r_now+v*delta_T*i,theta); % true location in the newly rotated axes, last location plus velocity*time
     M_p = (SRD+RDD)/(SRD+r_now(2)); % magnification of particle
     x_proj=[x_proj;M_p*r_now(1)+randn*noise/2];
     z_proj=[z_proj;M_p*r_now(3)+randn*noise/2];
@@ -43,7 +46,7 @@ end
 xz_proj=[x_proj, z_proj];
 
 
-%% Calculation part2: geting the measured values 
+%% Calculation part2: getting the measured values 
 
 if method == 0
 
@@ -146,7 +149,7 @@ r0_avg=mean(xyz_measured);
 
 
  %% function for rotating coordinate axes by a given angle alpha 
-   function [r2]=T(r1,alpha) %r1=[x1;y1;z1]and r2=[x2;y2;z2] describe the same physical pt but in 2 coordinate systems with
+   function [r2]=T(r1,alpha) %r1=[x1;y1]and r2=[x2;y2] describe the same physical pt but in 2 coordinate systems with
    % theta degress rotation CCW
    r2=[cos(-alpha) -sin(-alpha) 0; sin(-alpha) cos(-alpha) 0;0 0 1]*r1;
    % note that we are rotating the coordinate axes, not the location vector of the particle
