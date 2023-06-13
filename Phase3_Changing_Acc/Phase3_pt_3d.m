@@ -1,6 +1,6 @@
 %% Data Input
 function results = Phase3_pt_3d(initial_position_3d, noise, delta_T, NOS,theta_degree)
-format default
+format short
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
 % % theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
@@ -9,10 +9,9 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 % % initial_position_3d = [x0;y0;z0], a column vector
 % noise=5e-3; %the 68% chance deviation of the projection measurement from the perfect measurement 
 
-method = 1; % 0 for least square, 1 for kalman
+method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [0.1;t;t^2]; %velocity function
-a = @(t) [0,1, 2*t]; % acceleration function
+v = @(t) [0.1;t+0.1;2*t+0.2]; %velocity function
 
 % Process error
 delta_P_X = 1e-3; % m
@@ -34,7 +33,7 @@ x_proj=[M_p*r0_0(1)+randn*noise/2];
 z_proj=[M_p*r0_0(3)+randn*noise/2];
 % % Second shot: with theta degrees rotation each time
 for k = 1:NOS-1
-    r0_k=r0_0+integral(v,0,delta_T*k,'ArrayValued', true) % true location in the original frame of reference
+    r0_k=r0_0+integral(v,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
     real_Positions = [real_Positions; r0_0 + integral(v,0,delta_T*k,'ArrayValued', true)'];
     r_now=T(r0_k,theta*k);
     M_p = (SRD+RDD)/(SRD+r_now(2)); % magnification of particle
@@ -49,7 +48,7 @@ xz_proj=[x_proj, z_proj];
 %% Calculation part2: geting the measured values 
 
 if method == 0
-
+proj2r0(xz_proj,theta,SRD,RDD,delta_T)
 
 
 
@@ -218,28 +217,69 @@ subplot_tool.Position(2) = subplot_tool.Position(2) - 0.025;
    end
   
    %% 
-   function [r0]= proj2r0(proj,theta,SRD,RDD) %takes in any N (even #) by 2 of projection coordinates and the angle 
-   %theta btw the shots and outputs the predicted [x0, y0, z0] sets in coordinates when theta=0 (original
-   %position before camera machine starts rotating)
-   %r0=[x0_1, y0_1,z0_1; x0_2,y0_2,z_02;.....]
+%row_number_A=row_number_A+NOS ;%which is different from phase 1. We get a new equation each shot for the change of z coordinate due to velocity
 
-   r0=zeros(height(proj)/2,3); %initialize the predicted positions
-       for i = 1:(height(proj)/2)
-           xi_1=proj(2*i-1,1); xi_2=proj(2*i,1); alpha=2*i*theta-theta;
-           A=[cos(theta), sin(theta), -1, 0; 
-                 -sin(theta), cos(theta), 0, -1; 
-                 -1, xi_1/(SRD+RDD), 0, 0,;
-                 0, 0, -1, xi_2/(SRD+RDD)];
-            b=[0;0;-xi_1*SRD/(SRD+RDD);-xi_2*SRD/(SRD+RDD);];
-            x=(A\b);
-            r0(i,1:2)=(T_2d(x(3:4), -alpha))';
-            r0(i,3)=proj(2*i,2)*(SRD+x(4))/(RDD+SRD);
-          
+function [r0]= proj2r0(proj,theta,SRD,RDD,delta_T) %takes in any N (even #) by 2 of projection coordinates and the angle 
+   %theta btw the shots and outputs the predicted [x0, y0, z0] sets in coordinates when theta=0 (original
+   %position before camera machine starts rotating
+   NOS=height(proj); SDD=(SRD+RDD);
+   row_number_A=round(2*NOS+ 2*(factorial(NOS)/(factorial(NOS-2)*2))  ,  0  ); 
+   col_number_A=round(1+2*NOS, 0); %round function is for avoiding precision error
+   A=zeros(   row_number_A,  col_number_A); 
+   b=zeros(height(A),1);
+       for j = 1:(NOS)  %This for loop is for constructing the equations arising from magnification alone
+           %for each increased number of shots there are 2 new variables
+           %introduced and 2 equations
+           xi_j=proj(j,1);   zi_j=proj(j,2); 
+           A(2*j-1,1)=1; A( 2*j-1,2*j+1)=-zi_j/SDD; b(2*j-1)=zi_j*SRD/SDD;%for z0 magnification eq
+           A(2*j,2*j)=-1;A(2*j,2*j+1)=xi_j/SDD; b(2*j)=-xi_j*SRD/SDD;%for x_0 magnification eq
+           %the following 2 rows of codes are for equations transformation extracted from transformation
        end
-   function [r2]=T_2d(r1,alpha)
-   r2=[cos(-alpha) -sin(-alpha); sin(-alpha) cos(-alpha)]*r1;
+       %Now, 1 to NOS*2 rows are filled
+       IoR=2*NOS+1; %NoE, standing for Index of Rows, is for tracking the index of unfilled rows 
+       %of the big matrix A
+      for k = 2:(NOS)
+          A( IoR:IoR+2*(k-1)-1, 2*k : 2*k+1 )=repmat([-1 0; 0 -1],k-1,1);
+          
+          for L=1:k-1
+              A(IoR+2*(L-1) : IoR+2*(L-1)+1 , 2*(k-1)-2*(L-1):2*(k-1)-2*(L-1)+1)=[cos(theta*L) sin(theta*L); -sin(theta*L) cos(theta*L)];
+          end
+          IoR=IoR+2*(k-1);
+      end
+       
+%Now, we expand the number of columns to incorporate new variables: u, v , w, a_x, a_y, a_z 
+A=[A,zeros(height(A),6)];
+new_col_num=length(A); %new_col_num is the number of columns after adding the new variables related to v and a 
+%u, v , w, a_x, a_y, a_z are at the last 6 columns
+%% The following is for coefficients related to V and a to magnification equations 
+     for j = 1:(NOS-1)  
+           %w is at new_col_num-3; a_z is at new_col_num (the last column)
+           A( 2*j-1,new_col_num-3)=delta_T*(j-1); %for w term 
+           A( 2*j-1,new_col_num)=0.5*(delta_T*(j-1))^2; %for a_z term 
+     end
+     % The following is for adding equations related to u, v, a_x, a_y to
+     % transformation equations
+     IoR=2*NOS+1; %IoR is for tracking the index of unfilled rows of the big matrix A
+     for k=2:NOS  
+         
+          for L=1:k-1
+              A(IoR+2*(L-1), new_col_num-5)=cos(theta*L)*delta_T*(L-1);
+              A(IoR+2*(L-1)+1, new_col_num-5)=-sin(theta*L)*delta_T*(L-1);%for u
+              A(IoR+2*(L-1), new_col_num-4)=sin(theta*L)*delta_T*(L-1);
+              A(IoR+2*(L-1)+1, new_col_num-4)=cos(theta*L)*delta_T*(L-1);%for v
+              A(IoR+2*(L-1), new_col_num-2)=0.5*cos(theta*L)*(delta_T*(L-1))^2;
+              A(IoR+2*(L-1)+1, new_col_num-2)=-sin(theta*L)*0.5*(delta_T*(L-1))^2;%for ax
+              A(IoR+2*(L-1), new_col_num-1)=0.5*sin(theta*L)*(delta_T*(L-1))^2;
+              A(IoR+2*(L-1)+1, new_col_num-1)=0.5*cos(theta*L)*(delta_T*(L-1))^2;%for ay
+
+          end
+          IoR=IoR+2*(k-1);
+     end
+
+     x=(A\b);
+     r0=[x(2),x(3),x(1),x(new_col_num-5),x(new_col_num-4),x(new_col_num-3),x(new_col_num-2),x(new_col_num-1),x(new_col_num)];
    end
-   end
+
    
 
 end
