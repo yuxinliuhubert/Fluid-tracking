@@ -1,6 +1,6 @@
 %% Data Input
 function results = Phase3_pt_3d(initial_position_3d, noise, delta_T, NOS,theta_degree)
-format short
+format long g
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
 % % theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
@@ -12,7 +12,7 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 method = 0; % 0 for least square, 1 for kalman
 
 % v = @(t) [0.1;t+0.1;2*t+0.2]; %velocity function
-v = @(t) [0.16;0;0]; % constant velocity
+v = @(t) [0;0;0]; % constant velocity
 % v = @(t) [0;0;0]; % no velocity
 
 
@@ -45,7 +45,6 @@ for k = 1:NOS-1
 end
 % x_proj and z_proj are NOS by 1 vectors with all the x-coordinates projection on the screen
 xz_proj=[x_proj, z_proj];
-
 
 
 %% Calculation part2: geting the measured values 
@@ -255,7 +254,7 @@ A=[A,zeros(height(A),6)];
 [~,new_col_num] = size(A); %new_col_num is the number of columns after adding the new variables related to v and a 
 %u, v , w, a_x, a_y, a_z are at the last 6 columns
 %% The following is for coefficients related to V and a to magnification equations 
-     for j = 1:(NOS-1)  
+     for j = 1:(NOS)  
            %w is at new_col_num-3; a_z is at new_col_num (the last column)
            A( 2*j-1,new_col_num-3)=delta_T*(j-1); %for w term 
            A( 2*j-1,new_col_num)=0.5*(delta_T*(j-1))^2; %for a_z term 
