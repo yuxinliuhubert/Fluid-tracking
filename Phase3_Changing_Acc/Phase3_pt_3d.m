@@ -11,7 +11,10 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [0.1;t+0.1;2*t+0.2]; %velocity function
+% v = @(t) [0.1;t+0.1;2*t+0.2]; %velocity function
+v = @(t) [0.16;0;0]; % constant velocity
+% v = @(t) [0;0;0]; % no velocity
+
 
 % Process error
 delta_P_X = 1e-3; % m
@@ -144,8 +147,6 @@ end
 % the entire time. In other words, linear velocity is expected.
 
 
-end
-
 
 
 %% Part 3: System output
@@ -207,7 +208,9 @@ subplot_tool = subplot(3,1,2);
 subplot_tool.Position(2) = subplot_tool.Position(2) - 0.025;
 
 
+end
 
+results = 0;
 
  %% function for rotating coordinate axes by a given angle alpha 
    function [r2]=T(r1,alpha) %r1=[x1;y1;z1]and r2=[x2;y2;z2] describe the same physical pt but in 2 coordinate systems with
@@ -249,7 +252,7 @@ function [r0]= proj2r0(proj,theta,SRD,RDD,delta_T) %takes in any N (even #) by 2
        
 %Now, we expand the number of columns to incorporate new variables: u, v , w, a_x, a_y, a_z 
 A=[A,zeros(height(A),6)];
-new_col_num=length(A); %new_col_num is the number of columns after adding the new variables related to v and a 
+[~,new_col_num] = size(A); %new_col_num is the number of columns after adding the new variables related to v and a 
 %u, v , w, a_x, a_y, a_z are at the last 6 columns
 %% The following is for coefficients related to V and a to magnification equations 
      for j = 1:(NOS-1)  
