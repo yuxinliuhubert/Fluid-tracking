@@ -11,7 +11,7 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [0.1;0.3;0.2]; %velocity function
+v = @(t) [3;2;1]; %velocity function
 
 % Process error
 delta_P_X = 1e-3; % m
@@ -65,10 +65,11 @@ function [r0]= proj2r0(proj,theta,SRD,RDD,delta_T) %takes in any N (even #) by 2
    %theta btw the shots and outputs the predicted [x0, y0, z0] sets in coordinates when theta=0 (original
    %position before camera machine starts rotating
     NOS=height(proj); SDD=(SRD+RDD);
-   row_number_A=round(2*NOS+ 2*(factorial(NOS)/(factorial(NOS-2)*2))  ,  0  ); 
+   row_number_A=round(2*NOS+ 2*(NOS-1)  ,  0  ); %2*NOS equations are from magnifications, and 
+   % 2*(NOS-1) equations are from transformation
    col_number_A=round(1+2*NOS, 0); %round function is for avoiding precision error
    A=zeros(   row_number_A,  col_number_A); 
-   b=zeros(height(A),1);
+   b=zeros(row_number_A,1);
        for j = 1:(NOS)  %This for loop is for constructing the equations arising from magnification alone
            %for each increased number of shots there are 2 new variables
            %introduced and 2 equations
@@ -80,18 +81,17 @@ function [r0]= proj2r0(proj,theta,SRD,RDD,delta_T) %takes in any N (even #) by 2
        
        x=2*NOS+1; %x is for tracking the index of unfilled rows of the big matrix A
       for k = 2:(NOS)
-          A( x:x+2*(k-1)-1, 2*k : 2*k+1 )=repmat([-1 0; 0 -1],k-1,1);
+          A( x:x+1, 2*k : 2*k+1 )=[-1 0; 0 -1];
+          A(x:x+1,2:3)=[cos(theta*(k-1)) sin(theta*(k-1)); -sin(theta*(k-1)) cos(theta*(k-1))];
           
-          for l=1:k-1
-              A(x+2*(l-1) : x+2*(l-1)+1 , 2*(k-1)-2*(l-1):2*(k-1)-2*(l-1)+1)=[cos(theta*l) sin(theta*l); -sin(theta*l) cos(theta*l)];
-          end
-          x=x+2*(k-1);
+          x=x+2;
       end
        
 %% Now, we expand the number of columns to incorporate new variables: u, v , w
 A=[A,zeros(height(A),3)];
-new_col_num=size(A,2); %new_col_num is the number of columns after adding the new variables 
-%u, v , w are at the last 6 columns
+new_col_num=size(A,2);%new_col_num is the number of columns after adding the new variables 
+%u, v , w are at the last 3 columns
+
 %% The following is for coefficients related to V to magnification equations 
      for j = 1:(NOS)  
            %w is at new_col_num (the last column)
@@ -101,17 +101,19 @@ new_col_num=size(A,2); %new_col_num is the number of columns after adding the ne
      % The following is for adding equations related to u, v, a_x, a_y to
      % transformation equations
      IoR=2*NOS+1; %IoR is for tracking the index of unfilled rows of the big matrix A
+     
      for k=2:NOS  
          
-          for L=1:k-1
-              A(IoR+2*(L-1), new_col_num-2)=delta_T*(L-1);
-              A(IoR+2*(L-1)+1, new_col_num-2)=delta_T*(L-1);%for u
-              A(IoR+2*(L-1), new_col_num-1)=delta_T*(L-1);
-              A(IoR+2*(L-1)+1, new_col_num-1)=delta_T*(L-1);%for v
+         nT=k-1; %nT stands for the number of delta T intervals between the shot being
+         % transformed and the first shot
+              A(IoR, new_col_num-2)=cos(theta*nT)*delta_T*(nT);
+              A(IoR+1, new_col_num-2)=-sin(theta*nT)*delta_T*(nT);%for u
+              A(IoR, new_col_num-1)=sin(theta*nT)*delta_T*(nT);
+              A(IoR+1, new_col_num-1)=cos(theta*nT)*delta_T*(nT);%for v
              
-
-          end
-          IoR=IoR+2*(k-1);
+            
+         
+          IoR=IoR+2;
      end
 
      x=(A\b);
