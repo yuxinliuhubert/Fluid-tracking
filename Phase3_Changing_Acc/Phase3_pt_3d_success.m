@@ -13,10 +13,10 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 
 method = 0; % 0 for least square, 1 for kalman
 
-% v = @(t) [3*t^2+7;2;1*t+2.2*t^2]; %velocity function
-v = @(t) [5;1;1]; %velocity function
+v = @(t) [2;1*t+3*t^2;2]; %velocity function
+% v = @(t) [5;1;1]; %velocity function
 
-poly_highest_degree = 2;
+poly_highest_degree = 1;
 % v = @(t) [3;2;1]; %velocity function
 
 % Process error
@@ -67,6 +67,7 @@ for k = 1:NOS-1
 
 end
 
+distance_traveled = norm(real_Positions(end,:) - real_Positions(1,:))
 % plot the true positions in red ('r') and estimated positions in blue ('b')
 % Create a figure
 f1 = figure;
@@ -162,6 +163,17 @@ annotation('textbox', [0.74, 0.55, 0.26, 0.1], ...
     'VerticalAlignment', 'top', ...
     'EdgeColor', 'none');
 
+
+
+% Set the scale for each axis
+x_scale = [-1, 1]; % Specify the desired minimum and maximum values for the x-axis
+y_scale = [-1, 1]; % Specify the desired minimum and maximum values for the y-axis
+% z_scale = [-1, 1]; % Specify the desired minimum and maximum values for the z-axis
+
+% Set the scale of each axis
+xlim(x_scale);
+ylim(y_scale);
+% zlim(z_scale);
 
 grid on;
 xlabel('X');

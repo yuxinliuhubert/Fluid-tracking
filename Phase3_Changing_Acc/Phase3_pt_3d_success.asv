@@ -1,7 +1,7 @@
 %% Data Input
 function results = Phase3_pt_3d_success(initial_position_3d, noise, delta_T, NOS,theta_degree)
 % clear figure
-format default
+format short
 close all
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
@@ -13,9 +13,10 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [3*t^3+7;2;1*t+2.2*t^2]; %velocity function
+v = @(t) [1*t+2.2*t^2;3;5]; %velocity function
+% v = @(t) [5;1;1]; %velocity function
 
-poly_highest_degree = 3;
+poly_highest_degree = 1;
 % v = @(t) [3;2;1]; %velocity function
 
 % Process error
@@ -66,6 +67,7 @@ for k = 1:NOS-1
 
 end
 
+distance_traveled = norm(real_Positions(end,:) - real_Positions(1,:))
 % plot the true positions in red ('r') and estimated positions in blue ('b')
 % Create a figure
 f1 = figure;
@@ -162,6 +164,17 @@ annotation('textbox', [0.74, 0.55, 0.26, 0.1], ...
     'EdgeColor', 'none');
 
 
+
+% Set the scale for each axis
+x_scale = [-1, 1]; % Specify the desired minimum and maximum values for the x-axis
+y_scale = [-1, 1]; % Specify the desired minimum and maximum values for the y-axis
+z_scale = [-1, zmax]; % Specify the desired minimum and maximum values for the z-axis
+
+% Set the scale of each axis
+xlim(x_scale);
+ylim(y_scale);
+zlim(z_scale);
+
 grid on;
 xlabel('X');
 ylabel('Y');
@@ -177,7 +190,7 @@ user_input = input(prompt, 's');
 
 if strcmpi(user_input, 'y')
     % Define the format for the filename
-    filename_format = 'NOS%d_R%d_T%d_D%d';
+    filename_format = 'NOS%d_R%d_T%.2f_D%d.png';
     
     % Replace the placeholders with appropriate values
     filename = sprintf(filename_format, NOS, theta_degree, delta_T, poly_highest_degree);
