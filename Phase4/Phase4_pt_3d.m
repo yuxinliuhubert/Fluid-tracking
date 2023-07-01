@@ -1,5 +1,5 @@
 %% Data Input
-function [real_positions,positions_predicted] = Phase4_pt_3d(initial_position_3d, noise, delta_T, NOS,theta_degree,N)
+function [real_positions,positions_predicted] = Phase4_pt_3d(initial_position_3d, conditions,vel_expression)
 %N means the number of shots to use for one matrix; NOS/N must be a whole
 %number
 format default
@@ -11,9 +11,12 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 % % initial_position_3d = [x0;y0;z0], a column vector
 % noise=5e-3; %the 68% chance deviation of the projection measurement from the perfect measurement
 
+
+[noise, delta_T,NOS,theta_degree,N] = deal(conditions(1),conditions(2),conditions(3),conditions(4),conditions(5));
+
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [3*t+7;2;1*t+2.2]; %velocity function
+% v = @(t) [3*t+7;2;1*t+2.2]; %velocity function
 
 % Process error
 delta_P_X = 1e-3; % m
@@ -35,8 +38,8 @@ x_proj=M_p*r0_0(1)+randn*noise/2;
 z_proj=M_p*r0_0(3)+randn*noise/2;
 % % Second shot: with theta degrees rotation each time
 for k = 1:NOS-1
-    r0_k=r0_0+integral(v,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
-    real_positions = [real_positions; r0_0 + integral(v,0,delta_T*k,'ArrayValued', true)'];
+    r0_k=r0_0+integral(vel_expression,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
+    real_positions = [real_positions; r0_0 + integral(vel_expression,0,delta_T*k,'ArrayValued', true)'];
     r_now=T(r0_k,theta*k);
     M_p = (SRD+RDD)/(SRD+r_now(2)); % magnification of particle
     x_proj=[x_proj;M_p*r_now(1)+randn*noise/2];
@@ -48,23 +51,18 @@ xz_proj=[x_proj, z_proj];
 proj_used_index=1;
 positions_predicted=[];
 %% Calculation part2: geting the measured values
-for i=1:round(NOS/N)
-    alpha=-theta*(proj_used_index-1);%alpha is for tracking the degree rotated from the 1st shot
-    values_this_round=proj2r0_acc(xz_proj(proj_used_index:(proj_used_index+N-1),:),theta,SRD,RDD,delta_T);
-    [x0, y0, z0 ,u ,v ,w ,a_x, a_y ,a_z]=deal(values_this_round(1),values_this_round(2),values_this_round(3),values_this_round(4),values_this_round(5),values_this_round(6),values_this_round(7),values_this_round(8),values_this_round(9));
-    position_rotated=T([x0;y0;z0],alpha)';
-    [x0, y0, z0]=deal(position_rotated(1), position_rotated(2) , position_rotated(3) );
-    positions_predicted=[positions_predicted;position_rotated];
-    velocity_rotated=T([u;v;w],alpha)';
-    [u ,v ,w]=deal(velocity_rotated(1), velocity_rotated(2) , velocity_rotated(3) );
-    acc_rotated=T([a_x; a_y ;a_z],alpha)';
-    [a_x, a_y ,a_z]=deal(acc_rotated(1), acc_rotated(2) , acc_rotated(3) );
-    for j =1:N-1
-        time=delta_T*j;
-        positions_predicted=[positions_predicted;x0+u*time+0.5*a_x*time^2, y0+v*time+0.5*a_y*time^2, z0+w*time+0.5*a_z*time^2 ];
-    end
 
-    proj_used_index=proj_used_index+N;
+NOS_per_section = N;
+for i = 1:round(NOS/N)
+     alpha=-theta*(proj_used_index-1);%alpha is for tracking the degree rotated from the 1st shot
+     positions_predicted = [positions_predicted; generateEstimatedPositions(alpha,proj_used_index, NOS_per_section)];
+     
+     if NOS - proj_used_index < 2*N
+         NOS_per_section = NOS - proj_used_index;
+     end
+     proj_used_index = proj_used_index+NOS_per_section;
+
+
 end
 
 %% function for rotating coordinate axes by a given angle alpha
@@ -75,7 +73,29 @@ end
     end
 
 
+    
+    function positions_predicted = generateEstimatedPositions(alpha, proj_used_index, N)
+        positions_predicted = [];
+%         alpha=-theta*(proj_used_index-1);%alpha is for tracking the degree rotated from the 1st shot
+        values_this_round=proj2r0_acc(xz_proj(proj_used_index:(proj_used_index+N-1),:),theta,SRD,RDD,delta_T);
+        [x0, y0, z0 ,u ,v ,w ,a_x, a_y ,a_z]=deal(values_this_round(1),values_this_round(2),values_this_round(3),values_this_round(4),values_this_round(5),values_this_round(6),values_this_round(7),values_this_round(8),values_this_round(9));
+        position_rotated=T([x0;y0;z0],alpha)';
+        [x0, y0, z0]=deal(position_rotated(1), position_rotated(2) , position_rotated(3) );
+        positions_predicted=[positions_predicted;position_rotated];
+        velocity_rotated=T([u;v;w],alpha)';
+        [u ,v ,w]=deal(velocity_rotated(1), velocity_rotated(2) , velocity_rotated(3) );
+        acc_rotated=T([a_x; a_y ;a_z],alpha)';
+        [a_x, a_y ,a_z]=deal(acc_rotated(1), acc_rotated(2) , acc_rotated(3) );
+        for j =1:N-1
+            time=delta_T*j;
+            positions_predicted=[positions_predicted;x0+u*time+0.5*a_x*time^2, y0+v*time+0.5*a_y*time^2, z0+w*time+0.5*a_z*time^2 ];
+        end
+
+    end
+
+
 %row_number_A=row_number_A+NOS ;%which is different from phase 1. We get a new equation each shot for the change of z coordinate due to velocity
+
 
 
 

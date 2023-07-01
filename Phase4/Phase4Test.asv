@@ -1,0 +1,10 @@
+
+
+NOS = 20;
+theta_degrees = 1.8;
+NOS_per_section = 6; % must be larger than 5 to satisfy equations
+conditions = [NOS,theta_degrees,NOS_per_section];
+
+[real_positions, estimated_positions] = Phase4_pt_3d([0,0,0],0,0.04,conditions)
+
+Phase4Graph(real_positions, estimated_positions,NOS)
