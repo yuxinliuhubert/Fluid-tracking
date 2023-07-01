@@ -57,10 +57,12 @@ for i = 1:round(NOS/N)
      alpha=-theta*(proj_used_index-1);%alpha is for tracking the degree rotated from the 1st shot
      positions_predicted = [positions_predicted; generateEstimatedPositions(alpha,proj_used_index, NOS_per_section)];
      
-     if NOS - proj_used_index < 2*N
-         NOS_per_section = NOS - proj_used_index;
+     % when mod(NOS, N) is not 0, this code ensures that at least 5
+     % shots are used to generate positions
+     if NOS - proj_used_index < 2*N % insufficient equation trigger
+         NOS_per_section = NOS - proj_used_index; % adjust the NOS_per_section to include the remaining shots
      end
-     proj_used_index = proj_used_index+NOS_per_section;
+     proj_used_index = proj_used_index+NOS_per_section; % change project_used_index accordingly
 
 
 end
@@ -92,9 +94,6 @@ end
         end
 
     end
-
-
-%row_number_A=row_number_A+NOS ;%which is different from phase 1. We get a new equation each shot for the change of z coordinate due to velocity
 
 
 
