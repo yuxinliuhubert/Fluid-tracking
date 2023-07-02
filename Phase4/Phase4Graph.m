@@ -11,10 +11,10 @@ real_positions = real_positions(1:height(estimated_positions),:);
 
 % plot the true positions in red ('r') and estimated positions in blue ('b')
 % Create a figure
-f1 = figure;
+f2 = figure;
 % Get screen size
 screen = get(groot, 'ScreenSize');
-set(f1,'visible','on');
+set(f2,'visible','on');
 
 % Set the new position [left bottom width height]
 % Increase the width of the figure by multiplying 'figure_outpos(3)' by a factor > 1
@@ -126,6 +126,11 @@ legend('Real Positions', 'Estimated Positions');
 % ... Your previous code ...
 
 % Prompt for saving the figure
+% saveImage(NOS, theta_degree, delta_T, f2);
+
+end
+
+function saveImage(NOS, theta_degree, delta_T, f2)
 prompt = 'Do you want to save the figure? (y/n): ';
 user_input = input(prompt, 's');
 
@@ -140,9 +145,8 @@ if strcmpi(user_input, 'y')
     folder_path = 'Generated Images/';
     
     % Save the figure in the specified folder
-    saveas(f1, fullfile(folder_path, filename), 'png'); % You can change the file format if desired
+    saveas(f2, fullfile(folder_path, filename), 'png'); % You can change the file format if desired
     
     disp(['Figure saved as ', fullfile(folder_path, filename)]);
 end
-
 end

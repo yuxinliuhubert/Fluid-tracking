@@ -53,17 +53,40 @@ positions_predicted=[];
 %% Calculation part2: geting the measured values
 
 NOS_per_section = N;
-for i = 1:round(NOS/N)
-     alpha=-theta*(proj_used_index-1);%alpha is for tracking the degree rotated from the 1st shot
-     positions_predicted = [positions_predicted; generateEstimatedPositions(alpha,proj_used_index, NOS_per_section)];
-     
+prev_NOS_section = NOS_per_section;
 
+for i = 1:round(NOS/N)
+
+alpha=-theta*(proj_used_index-1);% alpha is for tracking the degree rotated from the 1st shot
+positions_predicted = [positions_predicted;generateEstimatedPositions(alpha, proj_used_index, NOS_per_section)]
      % when mod(NOS, N) is not 0, this code ensures that at least 5
-     % shots are used to generate positions
+     % shots are used to generate positionsproj_used_index
      if NOS - proj_used_index < 2*N % insufficient equation trigger
+         prev_NOS_section = NOS_per_section;
          NOS_per_section = NOS - proj_used_index; % adjust the NOS_per_section to include the remaining shots
      end
-     proj_used_index = proj_used_index+NOS_per_section;
+     proj_used_index = proj_used_index+NOS_per_section; % change project_used_index accordingly
+end
+
+for i = 1:round(NOS-N)
+     alpha=-theta*(proj_used_index-1);% alpha is for tracking the degree rotated from the 1st shot
+
+     if proj_used_index == 1
+        positions_predicted = [positions_predicted; generateEstimatedPositions(alpha,proj_used_index, NOS_per_section)];
+     else 
+        % take every N shots from every index, and take average of them
+        last_positions = positions_predicted(proj_used_index: proj_used_index + prev_NOS_section-2, :);
+        new_positions = generateEstimatedPositions(alpha,proj_used_index, NOS_per_section);
+
+
+        % add the new positions with the old, and then take average
+        new_positions = [(new_positions(1:height(last_positions), :) + last_positions)/2; new_positions(height(last_positions): end,:)];
+        positions_predicted = [positions_predicted(1:proj_used_index-1,:);new_positions];
+
+        
+
+     end
+    proj_used_index = proj_used_index + 1;
 
 
 end

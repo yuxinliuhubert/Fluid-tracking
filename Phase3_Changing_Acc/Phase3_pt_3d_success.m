@@ -1,8 +1,8 @@
 %% Data Input
-function results = Phase3_pt_3d_success(initial_position_3d, noise, delta_T, NOS,theta_degree)
+function results = Phase3_pt_3d_success(initial_position_3d, noise, delta_T, NOS,theta_degree, v)
 % clear figure
 format short
-close all
+% close all
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
 % % theta_degree = 10; % clock-wise degree, what is the angle of camera rotation before each shot
@@ -13,8 +13,9 @@ RDD = 1; % m, Reference-Detector (screen) Distance
 
 method = 0; % 0 for least square, 1 for kalman
 
-v = @(t) [2;1*t+3*t^2;2]; %velocity function
+% v = @(t) [2;1*t+3*t^2;2]; %velocity function
 % v = @(t) [5;1;1]; %velocity function
+% v = @(t) (t<delta_T*30).* [2;1*t+3*t^2;2] + (t>=delta_T*30) .* [3*t+7;2;1*t+2.2];
 
 poly_highest_degree = 1;
 % v = @(t) [3;2;1]; %velocity function
@@ -171,8 +172,8 @@ y_scale = [-1, 1]; % Specify the desired minimum and maximum values for the y-ax
 % z_scale = [-1, 1]; % Specify the desired minimum and maximum values for the z-axis
 
 % Set the scale of each axis
-xlim(x_scale);
-ylim(y_scale);
+% xlim(x_scale);
+% ylim(y_scale);
 % zlim(z_scale);
 
 grid on;
@@ -185,24 +186,7 @@ legend('Real Positions', 'Estimated Positions');
 % ... Your previous code ...
 
 % Prompt for saving the figure
-prompt = 'Do you want to save the figure? (y/n): ';
-user_input = input(prompt, 's');
-
-if strcmpi(user_input, 'y')
-    % Define the format for the filename
-    filename_format = 'NOS%d_R%d_T%.2f_D%d.png';
-    
-    % Replace the placeholders with appropriate values
-    filename = sprintf(filename_format, NOS, theta_degree, delta_T, poly_highest_degree);
-    
-    % Specify the folder path
-    folder_path = 'Generated Images/';
-    
-    % Save the figure in the specified folder
-    saveas(f1, fullfile(folder_path, filename), 'png'); % You can change the file format if desired
-    
-    disp(['Figure saved as ', fullfile(folder_path, filename)]);
-end
+% saveImage(NOS, theta_degree, delta_T, poly_highest_degree, f1);
 
 
 
@@ -280,8 +264,29 @@ new_col_num=size(A,2);%new_col_num is the number of columns after adding the new
 
      x=(A\b);
 r0=[x(2),x(3),x(1),x(new_col_num-5),x(new_col_num-4),x(new_col_num-3),x(new_col_num-2),x(new_col_num-1),x(new_col_num)];
-   end
+end
 
    
 
+end
+
+function saveImage(NOS, theta_degree, delta_T, poly_highest_degree, f1)
+prompt = 'Do you want to save the figure? (y/n): ';
+user_input = input(prompt, 's');
+
+if strcmpi(user_input, 'y')
+    % Define the format for the filename
+    filename_format = 'NOS%d_R%d_T%.2f_D%d.png';
+    
+    % Replace the placeholders with appropriate values
+    filename = sprintf(filename_format, NOS, theta_degree, delta_T, poly_highest_degree);
+    
+    % Specify the folder path
+    folder_path = 'Generated Images/';
+    
+    % Save the figure in the specified folder
+    saveas(f1, fullfile(folder_path, filename), 'png'); % You can change the file format if desired
+    
+    disp(['Figure saved as ', fullfile(folder_path, filename)]);
+end
 end
