@@ -1,4 +1,4 @@
-function Phase4Graph(real_positions, estimated_positions, conditions,v,method,dataPiling,f2)
+function Phase4Graph(real_positions, estimated_positions, conditions,v,method,f3)
 % close all
 
 delta_T = conditions(2);
@@ -9,22 +9,24 @@ NOS_per_section = conditions(5);
 real_positions = real_positions(1:height(estimated_positions),:);
 
 
-figure(f2);
-% % Get screen size
-% screen = get(groot, 'ScreenSize');
-% set(f2,'visible','on');
-% 
-% % Set the new position [left bottom width height]
-% % Increase the width of the figure by multiplying 'figure_outpos(3)' by a factor > 1
-% % For example, let's increase the width by 50%:
-% figure_outpos = get(gcf, 'OuterPosition');
-% new_width = figure_outpos(3) * 1.5;  % Increase the width by 50%
-% new_height = figure_outpos(4)*1.3;  % increase by 30%
-% 
-% position = [(screen(3)-new_width)/2 (screen(4)-new_height)/2 new_width new_height];
-% 
-% % Set the new position
-% set(gcf, 'OuterPosition', position);
+% plot the true positions in red ('r') and estimated positions in blue ('b')
+% Create a figure
+f2 = f3;
+% Get screen size
+screen = get(groot, 'ScreenSize');
+set(f2,'visible','on');
+
+% Set the new position [left bottom width height]
+% Increase the width of the figure by multiplying 'figure_outpos(3)' by a factor > 1
+% For example, let's increase the width by 50%:
+figure_outpos = get(gcf, 'OuterPosition');
+new_width = figure_outpos(3) * 1.5;  % Increase the width by 50%
+new_height = figure_outpos(4)*1.3;  % increase by 30%
+
+position = [(screen(3)-new_width)/2 (screen(4)-new_height)/2 new_width new_height];
+
+% Set the new position
+set(gcf, 'OuterPosition', position);
 
 % Threshold (percent of the total distance traveled)
 % threshold_percentage = 10;  % Set your own value here
@@ -66,7 +68,7 @@ text(real_positions(max_idx, 1), real_positions(max_idx, 2), real_positions(max_
 text(estimated_positions(max_idx, 1), estimated_positions(max_idx, 2), estimated_positions(max_idx, 3), sprintf('Max (%d): (%0.2f, %0.2f, %0.2f)', max_idx, estimated_positions(max_idx, :)), 'Color', 'b', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
 
 
-annotation('textbox', [0.74, 0.7, 0.2, 0.1], 'String', 'Least Square Big Matrix Variable Acceleration', 'Units', 'normalized', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'EdgeColor', 'none',FontWeight='bold');
+annotation('textbox', [0.74, 0.7, 0.2, 0.1], 'String', 'Least Square Big Matrix Constant Acceleration', 'Units', 'normalized', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', 'EdgeColor', 'none',FontWeight='bold');
 
 % Adding the distances, threshold percentage and other information in a single annotation
 annotation('textbox', [0.74, 0.2, 0.3, 0.2], 'String', ...
@@ -74,10 +76,9 @@ annotation('textbox', [0.74, 0.2, 0.3, 0.2], 'String', ...
              'Number of Shots: %d\n' ...
              'Rotation: %d degrees\n' ...
              'Time Between Shots: %0.2f s\n' ...
-             'NOS Per Section: %d\n' ...
-             'Method: %s\n' ...
-             'Data Piling: %s'], ...
-             min_val, max_val, NOS, theta_degree, delta_T,NOS_per_section,method,dataPiling), ...
+             'NOS per section: %d\n' ...
+             'Method: %s'], ...
+             min_val, max_val, NOS, theta_degree, delta_T,NOS_per_section,method), ...
     'FitBoxToText', 'on');
 
 % Get the string representation of the velocity function
