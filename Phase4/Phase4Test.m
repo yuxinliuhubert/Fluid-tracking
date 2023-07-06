@@ -5,9 +5,10 @@ noise = 1e-5;
 theta_degrees = 1.8;
 NOS_per_section = 6; % must be larger than 5 to satisfy equations
 camera_speed=1;%in Hz or revolution per second
+rev=2; %revolutions of camera for the entire process
 %% auto-calculations of the rest of the parameters derived from the setting above
 delta_T=camera_speed*theta_degrees/360;
-NOS=floor(360/theta_degrees/NOS_per_section)*NOS_per_section*2;
+NOS=floor(360*rev/theta_degrees/NOS_per_section)*NOS_per_section;
 v=@(t)[0.9*sin(t), 0.9*cos(t),1];
 
 
