@@ -60,11 +60,11 @@ z_proj=M_p*r0_0(3)+randn*noise/2;
 % % Second shot: with theta degrees rotation each time
 for k = 1:NOS-1
     r0_k=r0_0+integral(vel_expression,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
-    real_positions = [real_positions; r0_0 + integral(vel_expression,0,delta_T*k,'ArrayValued', true)'];
-    r_now=T(r0_k,theta*k);
-    M_p = (SRD+RDD)/(SRD+r_now(2)); % magnification of particle
-    x_proj=[x_proj;M_p*r_now(1)+randn*noise/2];
-    z_proj=[z_proj;M_p*r_now(3)+randn*noise/2];
+    real_positions = [real_positions; r0_k];
+    r0_k_rotated=T(r0_k',theta*k)';
+    M_p = (SRD+RDD)/(SRD+r0_k_rotated(2)); % magnification of particle
+    x_proj=[x_proj;M_p*r0_k_rotated(1)+randn*noise/2];
+    z_proj=[z_proj;M_p*r0_k_rotated+randn*noise/2];
 end
 % x_proj and z_proj are NOS by 1 vectors with all the x-coordinates projection on the screen
 xz_proj=[x_proj, z_proj];
