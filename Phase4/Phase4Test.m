@@ -2,15 +2,18 @@ close all
 %% Input conditions
 initial_positions = [0,0,0];
 noise = 1e-5;
-delta_T = 0.005;
-NOS = 450;
 theta_degrees = 1.8;
-NOS_per_section = 60; % must be larger than 5 to satisfy equations
-% v = @(t) [3*t+7;2;1*t+2.2]; %velocity function
+NOS_per_section = 6; % must be larger than 5 to satisfy equations
+camera_speed=1;%in Hz or revolution per second
+%% auto-calculations of the rest of the parameters derived from the setting above
+delta_T=camera_speed*theta_degrees/360;
+NOS=floor(360/theta_degrees/NOS_per_section)*NOS_per_section*2;
+v=@(t)[0.9*sin(t), 0.9*cos(t),1];
 
-v = @(t) (t<delta_T*round(NOS/2)).* [2;1*t+3*t^3;2] + ...
-(t>=delta_T*round(NOS/2) & t < delta_T*round(NOS*0.8)) .* [3*t^3+7;2;1*t^2+2.2] + ...
-(t>=delta_T*round(NOS*0.8)).* [2-4*t^2;1*t;2];
+
+%v = @(t) (t<delta_T*round(NOS/2)).* [2;1*t+3*t^3;2] + ...
+%(t>=delta_T*round(NOS/2) & t < delta_T*round(NOS*0.8)) .* [3*t^3+7;2;1*t^2+2.2] + ...
+%(t>=delta_T*round(NOS*0.8)).* [2-4*t^2;1*t;2];
 
 conditions = [noise, delta_T, NOS,theta_degrees,NOS_per_section];
 
