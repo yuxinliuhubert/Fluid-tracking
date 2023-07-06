@@ -82,7 +82,7 @@ if strcmp(dataPiling,'serial')
     for i = 1:round(NOS/N)-1
 
         alpha=-theta*(proj_used_index-1);% alpha is for tracking the degree rotated from the 1st shot
-        positions_predicted = [positions_predicted;generateEstimatedPositions(alpha, proj_used_index, NOS_per_section)]
+        positions_predicted = [positions_predicted;generateEstimatedPositions(alpha, proj_used_index, NOS_per_section)];
         % when mod(NOS, N) is not 0, this code ensures that at least 5
         % shots are used to generate positionsproj_used_index
         if NOS - proj_used_index < 2*N % insufficient equation trigger
@@ -136,7 +136,7 @@ end
             [a_x, a_y ,a_z]=deal(acc_rotated(1), acc_rotated(2) , acc_rotated(3) );
             for j =1:N-1
                 time=delta_T*j;
-                positions_predicted=[positions_predicted;x0+u*time+0.5*a_x*time^2, y0+v*time+0.5*a_y*time^2, z0+w*time+0.5*a_z*time^2 ];
+                positions_predicted=[positions_predicted;x0+u*time+0.5*a_x*time^2, y0+v*time+0.5*a_y*time^2, z0+w*time+0.5*a_z*time^2];
             end
         elseif  strcmp(method,'linear')
             [x0, y0, z0 ,u ,v ,w]=deal(values_this_round(1),values_this_round(2),values_this_round(3),values_this_round(4),values_this_round(5),values_this_round(6));

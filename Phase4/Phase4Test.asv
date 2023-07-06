@@ -1,18 +1,17 @@
 close all
 %% Input conditions
 initial_positions = [0,0,0];
-noise = 1e-2;
-theta_degrees = 1.8;
-NOS_per_section = 650; % must be larger than 5 to satisfy equations
-camera_speed=0.1;%in Hz or revolution per second
-radius = 1; 
-rev=2; %revolutions of camera for the entire process
-NOS = 15000;
+noise = 1e-5;
+theta_degrees = 30;
+NOS_per_section = 6; % must be larger than 5 to satisfy equations
+camera_speed=0.4;%in Hz or revolution per second
+% rev=2; %revolutions of camera for the entire process
+NOS = 240;
 
 animated = false;
 
 %% auto-calculations of the rest of the parameters derived from the setting above
-delta_T=camera_speed*theta_degrees/360
+delta_T=camera_speed*theta_degrees/360;
 % NOS=floor(360*rev/theta_degrees/NOS_per_section)*NOS_per_section;
 v=@(t)[0.9*sin(t), 0.9*cos(t),1];
 
@@ -38,13 +37,13 @@ f3 = figure('Position', [figWidth+1, (screenSize(4)-figHeight)/2, figWidth, figH
 method = 'acceleration';
 dataPiling = 'overlap';
 [real_positions, estimated_positions] = Phase4_pt_3d(initial_positions,conditions,v,method,dataPiling);
-Phase4Graph(real_positions, estimated_positions,conditions,v,method,dataPiling,f2,animated,noise);
+Phase4Graph(real_positions, estimated_positions,conditions,v,method,dataPiling,f2,);
 
 
 method = 'linear';
 dataPiling = 'serial';
 [real_positions1, estimated_positions1] = Phase4_pt_3d(initial_positions,conditions,v,method,dataPiling);
-Phase4Graph(real_positions1, estimated_positions1,conditions,v,method,dataPiling,f3,animated,noise);
+Phase4Graph(real_positions1, estimated_positions1,conditions,v,method,dataPiling,f3);
 
 
 % Phase3_pt_3d_success(initial_positions,noise,delta_T,NOS,theta_degrees, v);
