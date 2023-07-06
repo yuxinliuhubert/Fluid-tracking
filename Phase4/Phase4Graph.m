@@ -47,7 +47,7 @@ distances = sqrt(sum((real_positions - estimated_positions).^2, 2));
 % ax = axes(f1, 'Position', [0.1, 0.2, 0.8, 0.6]);  % move the plot down by 20%
 
 % Plotting and labeling
-plot3(real_positions(:, 1), real_positions(:, 2), real_positions(:, 3), 'r', 'LineWidth', 2);
+plot3(real_positions(:, 1), real_positions(:, 2), real_positions(:, 3), 'r.',"MarkerSize",10);
 hold on;
 plot3(estimated_positions(:, 1), estimated_positions(:, 2), estimated_positions(:, 3), 'b', 'LineWidth', 2);
 % 
