@@ -64,7 +64,7 @@ for k = 1:NOS-1
     r0_k_rotated=T(r0_k',theta*k)';
     M_p = (SRD+RDD)/(SRD+r0_k_rotated(2)); % magnification of particle
     x_proj=[x_proj;M_p*r0_k_rotated(1)+randn*noise/2];
-    z_proj=[z_proj;M_p*r0_k_rotated+randn*noise/2];
+    z_proj=[z_proj;M_p*r0_k_rotated(3)+randn*noise/2];
 end
 % x_proj and z_proj are NOS by 1 vectors with all the x-coordinates projection on the screen
 xz_proj=[x_proj, z_proj];

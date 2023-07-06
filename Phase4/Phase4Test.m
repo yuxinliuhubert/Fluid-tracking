@@ -9,7 +9,7 @@ rev=2; %revolutions of camera for the entire process
 %% auto-calculations of the rest of the parameters derived from the setting above
 delta_T=camera_speed*theta_degrees/360;
 NOS=floor(360*rev/theta_degrees/NOS_per_section)*NOS_per_section;
-v=@(t)[0.9*sin(t), 0.9*cos(t),1];
+v=@(t)[0.9*sin(t); 0.9*cos(t);1];
 
 
 %v = @(t) (t<delta_T*round(NOS/2)).* [2;1*t+3*t^3;2] + ...
@@ -32,7 +32,7 @@ f3 = figure('Position', [figWidth+1, (screenSize(4)-figHeight)/2, figWidth, figH
 %% Automated Section
 method = 'acceleration';
 dataPiling = 'serial';
-[real_positions, estimated_positions] = Phase4_pt_3d(initial_positions,conditions,v,method,dataPiling);
+[real_positions, estimated_positions] = Phase4_pt_3d(initial_positions,conditions,v,method,dataPiling)
 Phase4Graph(real_positions, estimated_positions,conditions,v,method,dataPiling,f2);
 
 
