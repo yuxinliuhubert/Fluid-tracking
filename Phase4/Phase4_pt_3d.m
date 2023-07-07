@@ -1,5 +1,5 @@
 %% Data Input
-function [real_positions,positions_predicted] = Phase4_pt_3d(initial_position_3d, conditions,vel_expression,method, dataPiling,varargin)
+function [real_positions,positions_predicted] = Phase4_pt_3d(initial_position_3d, conditions,vel_expression,varargin)
 %N means the number of shots to use for one matrix; NOS/N must be a whole
 %number
 format default
@@ -18,10 +18,8 @@ p = inputParser; % create parser object
 addRequired(p,'initial_position_3d');
 addRequired(p,'conditions');
 addRequired(p,'vel_expression');
-
-% add optional parameter 'method' with default value 'linear'
-addParameter(p,'method','linear',@(x) any(validatestring(x,{'linear','acceleration'})));
-addParameter(p,'dataPiling','serial',@(x) any(validatestring(x,{'serial','overlap'})));
+addRequired(p,'method');
+addRequired(p,'dataPiling');
 
 % parse inputs
 parse(p,initial_position_3d,conditions,vel_expression,varargin{:});
@@ -42,6 +40,12 @@ dataPiling = p.Results.dataPiling;
 % Process error
 delta_P_X = 1e-3; % m
 delta_P_VX = 1e-3; % m/sec
+
+
+
+.....
+    .....
+
 
 % Observation error
 delta_O_X= 2e-3; % m
