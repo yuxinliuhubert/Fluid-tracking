@@ -3,7 +3,7 @@ close all
 clear
 
 %% Independent Variables
-rev=50; %revolutions of camera for the entire process
+rev=10; %revolutions of camera for the entire process
 NL = 80; % lower bound
 STP = 1;
 
@@ -12,7 +12,7 @@ initial_positions = [0,0,0];
 noise = 1e-3;
 theta_degrees = 1.8;
 camera_speed=1;%in Hz or revolution per second
-
+weights = [0.5; 0.3; 0.2]; % Same order as distances
 
 %% Variables that are not changed as frequent
 SRD = 1; % m, Source-Reference Distance
@@ -50,12 +50,13 @@ for i = 1:size(x,1)
     distances = [distances;max_distance, sum_distance,methodTime];
 
 end
-
+weightedIndexes = distances*weights;
 %% Plot
 % Plot the data
 figure('Position', [10 10 1200 800]) % set the figure size
+figureNum = 4;
 
-subplot(3,1,1); % select the first subplot
+subplot(figureNum,1,1); % select the first subplot
 [minVal, minIdx] = min(distances(:,1));
 [maxVal, maxIdx] = max(distances(:,1));
 plot(x,distances(:,1));
@@ -67,7 +68,7 @@ text((maxIdx-1)*STP+x(1), maxVal, sprintf('Max = %f, idx = %d', maxVal,(maxIdx-1
 title('Max Distances');
 hold off;
 
-subplot(3,1,2); % select the second subplot
+subplot(figureNum,1,2); % select the second subplot
 [minVal, minIdx] = min(distances(:,2));
 [maxVal, maxIdx] = max(distances(:,2));
 plot(x,distances(:,2));
@@ -79,7 +80,7 @@ text((maxIdx-1)*STP+x(1), maxVal, sprintf('Max = %f, idx = %d', maxVal,(maxIdx-1
 title('Sum Distances');
 hold off;
 
-subplot(3,1,3); % select the second subplot
+subplot(figureNum,1,3); % select the second subplot
 [minVal, minIdx] = min(distances(:,3));
 [maxVal, maxIdx] = max(distances(:,3));
 plot(x,distances(:,3));
@@ -91,6 +92,17 @@ text((maxIdx-1)*STP+x(1), maxVal, sprintf('Max = %f, idx = %d', maxVal,(maxIdx-1
 title('Run Time');
 hold off;
 
+subplot(figureNum,1,4); % select the second subplot
+[minVal, minIdx] = min(weightedIndexes);
+[maxVal, maxIdx] = max(weightedIndexes);
+plot(x,weightedIndexes);
+hold on;
+plot((minIdx-1)*STP+x(1), minVal, 'ro'); % marks the min point with a red circle
+plot((maxIdx-1)*STP+x(1), maxVal, 'bo'); % marks the max point with a blue circle
+text((minIdx-1)*STP+x(1), minVal, sprintf('Min = %f, idx = %d', minVal,(minIdx-1)*STP+x(1)), 'VerticalAlignment','bottom');
+text((maxIdx-1)*STP+x(1), maxVal, sprintf('Max = %f, idx = %d', maxVal,(maxIdx-1)*STP+x(1)), 'VerticalAlignment','top');
+title('Total Weighted');
+hold off;
 
 
 
