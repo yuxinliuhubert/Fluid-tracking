@@ -16,7 +16,7 @@ x_proj(1)=M_p*r0_0(1)+randn*noise/2;
 z_proj(1)=M_p*r0_0(3)+randn*noise/2;
 % % Second shot: with theta degrees rotation each time
 for k = 1:NOS-1
-    r0_k=r0_0+integral(v,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
+    r0_k=r0_0+integral(vel_expression,0,delta_T*k,'ArrayValued', true); % true location in the original frame of reference
     real_positions(k+1,:) =  r0_k;
     r_now=T(r0_k',theta*k)';
     M_p = (SRD+RDD)/(SRD+r_now(2)); % magnification of particle
