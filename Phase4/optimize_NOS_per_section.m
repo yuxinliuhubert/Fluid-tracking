@@ -3,7 +3,7 @@ close all
 clear
 
 %% Independent Variables
-rev=30; %revolutions of camera for the entire process
+rev=10; %revolutions of camera for the entire process
 
 % Input conditions
 initial_positions = [0,0,0];
@@ -43,24 +43,25 @@ STP = floor((NH-NL)/10);
 if STP <= 1
     STP = 1;
 end
-fprintf('STP = %d\n',STP);
+fprintf('NL: %d, NH: %d, STP: %d\n',NL, NH,STP);
 
 while STP >= 1
 x = [NL:STP:NH]';
-distances = [];
+distances_info = [];
 
 for i = 1:size(x,1)
     conditions(5) = x(i);
     %         distances(i) = computeMaxDistance(initial_positions,conditions,v,method,dataPiling,real_positions,xz_proj);
     [max_distance, sum_distance,methodTime] = computeMaxDistance(initial_positions,conditions,v,method,dataPiling,real_positions,xz_proj);
-    distances = [distances;max_distance, sum_distance,methodTime];
+    distances_info = [distances_info;max_distance, sum_distance,methodTime];
     if methodTime > 20
         x = x(1:i);
         break;
     end
 
 end
-weightedIndexes = distances*weights;
+mean_distances_info = mean(distances_info,1);
+weightedIndexes = (distances_info-mean_distances_info)./mean_distances_info *weights;
 
 %% Plot
 % Plot the data
@@ -68,9 +69,9 @@ figure('Position', [10 10 1200 800]) % set the figure size
 figureNum = 4;
 
 subplot(figureNum,1,1); % select the first subplot
-[minVal, minIdx] = min(distances(:,1));
-[maxVal, maxIdx] = max(distances(:,1));
-plot(x,distances(:,1));
+[minVal, minIdx] = min(distances_info(:,1));
+[maxVal, maxIdx] = max(distances_info(:,1));
+plot(x,distances_info(:,1));
 hold on;
 plot((minIdx-1)*STP+x(1), minVal, 'ro'); % marks the min point with a red circle
 plot((maxIdx-1)*STP+x(1), maxVal, 'bo'); % marks the max point with a blue circle
@@ -80,9 +81,9 @@ title('Max Distances');
 hold off;
 
 subplot(figureNum,1,2); % select the second subplot
-[minVal, minIdx] = min(distances(:,2));
-[maxVal, maxIdx] = max(distances(:,2));
-plot(x,distances(:,2));
+[minVal, minIdx] = min(distances_info(:,2));
+[maxVal, maxIdx] = max(distances_info(:,2));
+plot(x,distances_info(:,2));
 hold on;
 plot((minIdx-1)*STP+x(1), minVal, 'ro'); % marks the min point with a red circle
 plot((maxIdx-1)*STP+x(1), maxVal, 'bo'); % marks the max point with a blue circle
@@ -92,9 +93,9 @@ title('Sum Distances');
 hold off;
 
 subplot(figureNum,1,3); % select the second subplot
-[minVal, minIdx] = min(distances(:,3));
-[maxVal, maxIdx] = max(distances(:,3));
-plot(x,distances(:,3));
+[minVal, minIdx] = min(distances_info(:,3));
+[maxVal, maxIdx] = max(distances_info(:,3));
+plot(x,distances_info(:,3));
 hold on;
 plot((minIdx-1)*STP+x(1), minVal, 'ro'); % marks the min point with a red circle
 plot((maxIdx-1)*STP+x(1), maxVal, 'bo'); % marks the max point with a blue circle
@@ -119,6 +120,7 @@ drawnow;
 
 if minIdx == 1 || minIdx == length(x) || STP == 1
     STP = 0;
+    break;
 else
     NL = x(minIdx-1);
     NH = x(minIdx+1);
@@ -127,8 +129,8 @@ else
         STP = 1;
 
     end
-
 end
+fprintf('New search parameters: NL=%d, NH=%d, STP=%d\n',NL, NH,STP);
 
 end
 
@@ -139,21 +141,23 @@ fprintf('Optimized NOS_per_Section: %d\n',(minIdx-1)*STP+x(1))
 
 
 function [max_distance,sum_distance,methodTime] = computeMaxDistance(initial_positions,conditions,v,method,dataPiling,real_positions,xz_proj)
-fprintf('currently on %d\n',conditions(5));
 
 try
     %     conditions(5) = round(NOS_per_section);
     % Run your model
+
+    fprintf('currently on shot %d...', conditions(5))
     tic
     estimated_positions = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
-    methodTime = toc
+    methodTime = toc;
 
     % Compute the distances
     distances = sqrt(sum((real_positions - estimated_positions).^2, 2));
 
     % Return the maximum distance
-    max_distance = max(distances)
+    max_distance = max(distances);
     sum_distance = sum(distances);
+    fprintf('Max dist: %.3f m, Sum dist: %.3f m\n',max_distance,sum_distance);
 
 catch ME
     fprintf('An error occurred in Phase4_trace_3d: %s\n', ME.message);

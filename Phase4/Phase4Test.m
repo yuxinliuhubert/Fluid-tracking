@@ -4,9 +4,9 @@ close all
 initial_positions = [0,0,0];
 noise = 1e-3;
 theta_degrees = 1.8;
-rev=50; %revolutions of camera for the entire process
+rev=5; %revolutions of camera for the entire process
 NOS = rev*360/1.8;
-NOS_per_section = 85 % must be larger than 5 to satisfy equations
+NOS_per_section = 124 % must be larger than 5 to satisfy equations
 camera_speed=0.5;%in Hz or revolution per second
 
 SRD = 1; % m, Source-Reference Distance
@@ -48,19 +48,19 @@ f3 = figure('Position', [figWidth+1, (screenSize(4)-figHeight)/2, figWidth, figH
 
 %% Automated Section
 
-% tic
-% method = 'linear';
-% dataPiling = 'serial';
-% estimated_positions = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
-% method1Time = toc
-% Phase4Graph(real_positions, estimated_positions,conditions,v,method,dataPiling,f2,animated,noise);
-
 tic
 method = 'acceleration';
 dataPiling = 'serial';
-estimated_positions1 = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
-method2Time = toc
-Phase4Graph(real_positions, estimated_positions1,conditions,v,method,dataPiling,f3,animated,noise);
+estimated_positions = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
+method1Time = toc
+Phase4Graph(real_positions, estimated_positions,conditions,v,method,dataPiling,f2,animated,noise);
+
+% tic
+% method = 'acceleration';
+% dataPiling = 'overlap';
+% estimated_positions1 = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
+% method2Time = toc
+% Phase4Graph(real_positions, estimated_positions1,conditions,v,method,dataPiling,f3,animated,noise);
 
 
 
