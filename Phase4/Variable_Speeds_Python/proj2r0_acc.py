@@ -22,7 +22,7 @@ def proj2r0_acc(proj, theta, SRD, RDD, delta_T):
     x = 2 * NOS
     for k in range(1, NOS):
         A[x:x+2, 2*k+1:2*k+3] = [[-1, 0], [0, -1]]
-        A[x:x+2, 1:3] = [[np.cos(theta*(k-1)), np.sin(theta*(k-1))], [-np.sin(theta*(k-1)), np.cos(theta*(k-1))]]
+        A[x:x+2, 1:3] = [[np.cos(theta*(k)), np.sin(theta*(k))], [-np.sin(theta*(k)), np.cos(theta*(k))]]
         x += 2
         
     A = np.pad(A, ((0, 0), (0, 6)), 'constant')
