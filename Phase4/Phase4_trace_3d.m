@@ -61,7 +61,13 @@ theta = theta_degree/180*pi;
 
 %% Calculation part2: geting the measured values
 
+%% check error
+if NOS <= N
+    close all
+    error("NOS is less than NOS_per_section! NOS: %d, NOS_per_section: %d",NOS,N)
+end
 proj_used_index=1;
+prev_proj_index = proj_used_index;
 % Preallocate positions_predicted
 positions_predicted = zeros(NOS, 3);
 NOS_per_section = N;
@@ -74,8 +80,17 @@ if strcmp(dataPiling,'serial')
         temp = generateEstimatedPositions(alpha, proj_used_index, NOS_per_section);
         positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :)= temp;
 %         count = count + size(temp,1);
+        % check how far is the first position of the current estimate to
+        % the last position of the previous estimate. 
+        if proj_used_index > 1
+        position_difference = positions_predicted(proj_used_index,:)-positions_predicted(proj_used_index-1,:);
+        positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :) = positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :) - position_difference;
+        end
 
+
+%         prev_proj_index = proj_used_index;
         proj_used_index = proj_used_index+NOS_per_section; % change project_used_index accordingly
+        
 %             prev_NOS_section = NOS_per_section;
             if abs(NOS-proj_used_index) < N
                 % Back track so that we have enough shots
@@ -88,11 +103,17 @@ if strcmp(dataPiling,'serial')
                 
                 positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :)= combined_positions;
                 
+                
+                if proj_used_index > 1
+                    position_difference = positions_predicted(proj_used_index,:)-positions_predicted(proj_used_index-1,:);
+                    positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :) = positions_predicted(proj_used_index:proj_used_index+NOS_per_section-1, :) - position_difference;
+                end
                 proj_used_index = proj_used_index + NOS_per_section+1;
 
 
 %                 NOS_per_section = NOS - proj_used_index + 1; % adjust the NOS_per_section to include the remaining shots              
             end
+
 %         if NOS - proj_used_index < N+6
 %             prev_NOS_section = NOS_per_section;
 %             NOS_per_section = NOS - proj_used_index + 1; % adjust the NOS_per_section to include the remaining shots

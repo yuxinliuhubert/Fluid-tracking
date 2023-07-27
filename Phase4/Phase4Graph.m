@@ -88,7 +88,7 @@ else
     ax1.Position = [0.1, 0.2, 0.85, 0.7];
     plot3(real_positions(:, 1), real_positions(:, 2), real_positions(:, 3), 'r',"MarkerSize",10);
     hold on;
-    plot3(estimated_positions(:, 1), estimated_positions(:, 2), estimated_positions(:, 3), 'b', 'LineWidth', 2);
+    plot3(estimated_positions(:, 1), estimated_positions(:, 2), estimated_positions(:, 3), 'b.', 'LineWidth', 2);
 
 end
 
@@ -142,16 +142,16 @@ velocity_components = strsplit(velocity_expression, ',');
 velocity_components = strrep(velocity_components, '[', '');
 velocity_components = strrep(velocity_components, ']', '');
 
-% Format the annotation string
-annotation_string = sprintf('True velocity:\nX: %s\nY: %s\nZ: %s\nt is time elapsed', velocity_components{1}, velocity_components{2}, velocity_components{3});
-
-% Annotate function definition
-annotation('textbox', [0.74, 0.55, 0.26, 0.1], ...
-    'String', annotation_string, ...
-    'Units', 'normalized', ...
-    'HorizontalAlignment', 'left', ...
-    'VerticalAlignment', 'top', ...
-    'EdgeColor', 'none');
+% % Format the annotation string
+% annotation_string = sprintf('True velocity:\nX: %s\nY: %s\nZ: %s\nt is time elapsed', velocity_components{1}, velocity_components{2}, velocity_components{3});
+% 
+% % Annotate function definition
+% annotation('textbox', [0.74, 0.55, 0.26, 0.1], ...
+%     'String', annotation_string, ...
+%     'Units', 'normalized', ...
+%     'HorizontalAlignment', 'left', ...
+%     'VerticalAlignment', 'top', ...
+%     'EdgeColor', 'none');
 
 
 

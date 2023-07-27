@@ -34,18 +34,17 @@ def proj2r0_acc(proj, theta, SRD, RDD, delta_T):
         
     IoR = 2 * NOS
     for k in range(1, NOS):
-        NoT = k
-        A[IoR, new_col_num-6] = np.cos(theta * NoT) * delta_T * NoT
-        A[IoR+1, new_col_num-6] = -np.sin(theta * NoT) * delta_T * NoT
+        A[IoR, new_col_num-6] = np.cos(theta * k) * delta_T * k
+        A[IoR+1, new_col_num-6] = -np.sin(theta * k) * delta_T * k
         
-        A[IoR, new_col_num-5] = np.sin(theta * NoT) * delta_T * NoT
-        A[IoR+1, new_col_num-5] = np.cos(theta * NoT) * delta_T * NoT
+        A[IoR, new_col_num-5] = np.sin(theta * k) * delta_T * k
+        A[IoR+1, new_col_num-5] = np.cos(theta * k) * delta_T * k
         
-        A[IoR, new_col_num-3] = 0.5 * np.cos(theta * NoT) * (delta_T * NoT)**2
-        A[IoR+1, new_col_num-3] = -np.sin(theta * NoT) * 0.5 * (delta_T * NoT)**2
+        A[IoR, new_col_num-3] = 0.5 * np.cos(theta * k) * (delta_T * k)**2
+        A[IoR+1, new_col_num-3] = -np.sin(theta * k) * 0.5 * (delta_T * k)**2
         
-        A[IoR, new_col_num-2] = 0.5 * np.sin(theta * NoT) * (delta_T * NoT)**2
-        A[IoR+1, new_col_num-2] = 0.5 * np.cos(theta * NoT) * (delta_T * NoT)**2
+        A[IoR, new_col_num-2] = 0.5 * np.sin(theta * k) * (delta_T * k)**2
+        A[IoR+1, new_col_num-2] = 0.5 * np.cos(theta * k) * (delta_T * k)**2
         IoR += 2
         
     x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
