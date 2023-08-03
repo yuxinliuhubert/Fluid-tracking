@@ -1,28 +1,64 @@
 function v = testExpression(index,T)
+h = 5; % height
+r = 1; % radius
+ omega = 2*pi/(T/3);
+ A = 1;  % initial amplitude of 1 m
 switch index
 
     case 0
-        v=@(t)[0.9*sin(t), 0.9*cos(t),1];
+        v=@(t)[0.09*sin(t), 0.09*cos(t),0.1];
 
 
     case 1
-        a = 9;
+%     r = 0.5; % radius
+    h = 5; % height
+    omega = 2*pi/(T/3); % angular velocity for circular motion
 
-        v = @(t) ((t <= T/3).*([a*t; a*t; a*t] ) + ...  % First third - linear
-         (t > T/3 & t <= 2*T/3).*([a*cos(2*pi*(t-T/3)/(T/3)); a*sin(2*pi*(t-T/3)/(T/3)); a*(t-T/3)/(T/3)]) + ... % Middle third - circular path in xy-plane
-         (t > 2*T/3).*([a*cos(2*pi); a*sin(2*pi); a*(t-2*T/3)/(T/3)] + [a*cos(2*pi*(t-2*T/3)/(T/3)); a*sin(2*pi*(t-2*T/3)/(T/3)); a]))'; % Final third - circular path in xy-plane starting from the end of the previous path
+    v = @(t) ((t <= T/3).*([r/(T/3); 0; 0]) + ...  % First third - linear in x
+     (t > T/3 & t <= 2*T/3).*([-r*omega*sin(omega*(t-T/3)); r*omega*cos(omega*(t-T/3)); 0]) + ... % Middle third - circular path in xy-plane
+     (t > 2*T/3).*([-r*omega*sin(omega*(t-2*T/3)); r*omega*cos(omega*(t-2*T/3)); h/(T/3)]))'; % Final third - circular path in xy-plane and linear in z
+
          
     case 2
-        a = 5;
-        v = @(t) (t <= T/3).*(a*t.^2) + ...  % First third - quadratic
-         (t > T/3 & t <= 2*T/3).*(a*sin(2*pi*(t-T/3)/(T/3))) + ...  % Middle third - sine wave
-         (t > 2*T/3).*(a*log(t-2*T/3+1));  % Final third - logarithmic
+%         r = 0.5; % radius
+    h = 5; % height
+    omega = 2*pi/(T/3); % angular velocity for circular motion
+
+        v = @(t) ((t <= T/3).*([-r*omega*sin(omega*t); r*omega*cos(omega*t); 0]) + ...  % First third - circular path in xy-plane
+     (t > T/3 & t <= 2*T/3).*([0; 0; h/(T/3)]) + ... % Middle third - linear in z
+     (t > 2*T/3).*([-r*omega*sin(omega*(t-2*T/3)); r*omega*cos(omega*(t-2*T/3)); 0]))'; % Final third - circular path in xy-plane
 
 
-%     case 3
-%         v = @(t) (t<delta_T*round(NOS/2)).* [2;1*t+3*t^3;2] + ...
-%         (t>=delta_T*round(NOS/2) & t < delta_T*round(NOS*0.8)) .* [3*t^3+7;2;1*t^2+2.2] + ...
-%         (t>=delta_T*round(NOS*0.8)).* [2-4*t^2;1*t;2];
+
+
+
+    case 3
+            a = -0.4/(T^2/36);
+             b = 0.4/T;
+     
+    omega = 2*pi/(T/3); % angular velocity for circular motion
+
+
+        v = @(t) ((t <= T/3).*([a*t.^2; b*t; 0]) + ...  % First third - parabolic in x and linear in y
+     (t > T/3 & t <= 2*T/3).*([-r*omega*sin(omega*(t-T/3)); r*omega*cos(omega*(t-T/3)); 0]) + ... % Middle third - circular path in xy-plane
+     (t > 2*T/3).*([0; 0; h/(T/3)]))'; % Final third - linear in z
+
+    case 4
+            A = 1;  % initial amplitude of 1 m
+%     b = 0.1;  % chosen for reasonable damping within T/3
+    omega = 2*pi/(T/3);
+%     r = 0.5; % radius
+    v = @(t) ((t <= T/3).*([A*sin(omega*t); 0; 0]) + ...  % First third - sinusoidal in x
+     (t > T/3 & t <= 2*T/3).*([0; r/(T/3); 0]) + ... % Middle third - linear in y
+     (t > 2*T/3).*([-r*omega*sin(omega*(t-2*T/3)); r*omega*cos(omega*(t-2*T/3)); h/(T/3)]))'; % Final third - circular path in xy-plane and linear in z
+
+    case 5 % damped harmonic motion
+        b = 0.1;  % chosen for reasonable damping within T/3
+        v = @(t) ((t <= T/3).*([A*exp(-b*t).*sin(omega*t); 0; 0]) + ...  % First third - damped sinusoidal in x
+     (t > T/3 & t <= 2*T/3).*([0; r/(T/3); 0]) + ... % Middle third - linear in y
+     (t > 2*T/3).*([-r*omega*sin(omega*(t-2*T/3)); r*omega*cos(omega*(t-2*T/3)); h/(T/3)]))'; % Final third - circular path in xy-plane and linear in z
+
+
 
 
 

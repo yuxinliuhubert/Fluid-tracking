@@ -52,12 +52,14 @@ ax1 = axes(f2, 'Position', [0.1, 0.2, 0.6, 0.7]);  % move the plot down by 20%
 
 if animated == true
     % Animation
-    plot3(ax1,real_positions(:, 1), real_positions(:, 2), real_positions(:, 3), 'r',"MarkerSize",10);
+    
     for k = 1:size(estimated_positions, 1)
         % Add the current estimated position to the plot
 
+        
+        plot3(ax1,real_positions(1:k, 1), real_positions(1:k, 2), real_positions(1:k, 3), 'r',"MarkerSize",10);
         hold on
-        plot3(ax1,estimated_positions(1:k, 1), estimated_positions(1:k, 2), estimated_positions(1:k, 3), 'b.', 'LineWidth', 2);
+        plot3(ax1,estimated_positions(1:k, 1), estimated_positions(1:k, 2), estimated_positions(1:k, 3), 'b', 'LineWidth', 2);
 
         % Add a text element showing the current NOS
         current_NOS_text = sprintf('Current NOS: %d', k);
@@ -88,7 +90,7 @@ else
     ax1.Position = [0.1, 0.2, 0.85, 0.7];
     plot3(real_positions(:, 1), real_positions(:, 2), real_positions(:, 3), 'r',"MarkerSize",10);
     hold on;
-    plot3(estimated_positions(:, 1), estimated_positions(:, 2), estimated_positions(:, 3), 'b.', 'LineWidth', 2);
+    plot3(estimated_positions(:, 1), estimated_positions(:, 2), estimated_positions(:, 3), 'b', 'LineWidth', 2);
 
 end
 

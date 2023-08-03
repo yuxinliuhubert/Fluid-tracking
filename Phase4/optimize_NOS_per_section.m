@@ -2,34 +2,46 @@
 close all
 clear
 
-%% Independent Variables
-rev=10; %revolutions of camera for the entire process
+weights = [0.6,0.38,0.02]';
 
-% Input conditions
-initial_positions = [0,0,0];
-noise = 1e-3;
-theta_degrees = 1.8;
-camera_speed=0.5;%in Hz or revolution per second
-weights = [0.5; 0.3; 0.2]; % Same order as distances
-
-%% Variables that are not changed as frequent
+%% Input conditions
 SRD = 1; % m, Source-Reference Distance
 RDD = 1; % m, Reference-Detector (screen) Distance
-radius = 1;
+radius = 1; 
 
+initial_positions = [0,0,0];
+noise = 1e-3;
 
-%% Dependent Variables
-NOS = rev*360/1.8
-% NH = 200; % higher bound
-delta_T=camera_speed*theta_degrees/360;
-shots_per_second = 1/delta_T;
+delta_T = 0.1 % second
+
+rev=40; %revolutions of camera for the entire process
+
+camera_spin_freq=1;%in Hz or revolution per second
+camera_speed = camera_spin_freq*(2*pi*radius); % m/s
+
+theta_degrees = 360*camera_spin_freq*delta_T
+
+NOS = round(rev*360/theta_degrees)
+NOS_per_section = 30 % must be larger than 5 to satisfy equations
+animated = false;
+
+%% auto-calculations of the rest of the parameters derived from the setting above
+% delta_T=theta_degrees/360/camera_spin_freq
+
+shots_per_second = 1/delta_T
 % NOS=floor(360*rev/theta_degrees/NOS_per_section)*NOS_per_section;
-v=@(t)[0.9*sin(t), 0.9*cos(t),1];
+a = 5;  % amplitude, adjust as required
+x0 = initial_positions;  % initial position, adjust as required
+
+T = rev/camera_spin_freq;
+% Particle's path as a function of time
+v = testExpression(2,T)
+%
 
 NOS_per_section_initial_guess = round(NOS/9);  % start the search from 120
 conditions = [noise, delta_T, NOS,theta_degrees,NOS_per_section_initial_guess,SRD,RDD];
 method = 'acceleration';
-dataPiling = 'serial';
+dataPiling = 'overlap';
 
 % Set up the conditions
 [xz_proj, real_positions] = generateTestPositions(v,initial_positions,conditions);

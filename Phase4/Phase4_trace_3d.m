@@ -138,6 +138,15 @@ elseif strcmp(dataPiling,'overlap')
         proj_used_index = proj_used_index + 1;
     end
 
+% elseif strcmp(dataPiling,'double')
+%     dataPoints = 2;
+%     for i = 1:NOS-dataPoints+1
+%         alpha=-theta*(i-1);
+%         positions_predicted(i,:) = proj2r0_sta(xz_proj(i:i+dataPoints-1,:),theta,SRD,RDD);
+%     end
+%     for j = i:i+dataPoints-1
+%     positions_predicted(i+1,:) = positions_predicted(i,:);
+%     end
 end
 
 
