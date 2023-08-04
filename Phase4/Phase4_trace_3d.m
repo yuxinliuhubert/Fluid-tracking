@@ -126,9 +126,11 @@ elseif strcmp(dataPiling,'overlap')
 
         if proj_used_index == 1
             positions_predicted(proj_used_index:N,:) = generateEstimatedPositions(alpha,proj_used_index, NOS_per_section);
+
         else
             % take every N shots from every index, and take average of them
             last_positions = positions_predicted(proj_used_index: proj_used_index + prev_NOS_section-2, :);
+
             new_positions = generateEstimatedPositions(alpha,proj_used_index, NOS_per_section);
 
             % add the new positions with the old, and then take average
@@ -138,15 +140,7 @@ elseif strcmp(dataPiling,'overlap')
         proj_used_index = proj_used_index + 1;
     end
 
-% elseif strcmp(dataPiling,'double')
-%     dataPoints = 2;
-%     for i = 1:NOS-dataPoints+1
-%         alpha=-theta*(i-1);
-%         positions_predicted(i,:) = proj2r0_sta(xz_proj(i:i+dataPoints-1,:),theta,SRD,RDD);
-%     end
-%     for j = i:i+dataPoints-1
-%     positions_predicted(i+1,:) = positions_predicted(i,:);
-%     end
+
 end
 
 

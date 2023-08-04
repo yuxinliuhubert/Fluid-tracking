@@ -31,7 +31,7 @@ x0 = initial_positions;  % initial position, adjust as required
 
 T = rev/camera_spin_freq;
 % Particle's path as a function of time
-v = testExpression(2,T)
+v = testExpression(3,T)
 %
 conditions = [noise, delta_T, NOS,theta_degrees,NOS_per_section,SOD,RDD];
 [xz_proj, real_positions] = generateTestPositions(v,initial_positions,conditions);
@@ -60,14 +60,12 @@ f3 = figure('Position', [figWidth+1, (screenSize(4)-figHeight)/2, figWidth, figH
 tic
 method = 'acceleration';
 dataPiling = 'overlap';
-estimated_positions1 = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj)
-
-
+estimated_positions1 = Phase4_trace_3d(initial_positions,conditions,v,method,dataPiling,xz_proj);
+estimated_positions1 = smoothPoints(estimated_positions1,'sg',NOS_per_section);
 
 method2Time = toc
 Phase4Graph(real_positions, estimated_positions1,conditions,v,method,dataPiling,f3,animated,noise);
-estimated_positions1 = smoothPoints(estimated_positions1,'cb',11);
-Phase4Graph(real_positions, estimated_positions1,conditions,v,method,dataPiling,f2,animated,noise);
+
 
 
 % Phase3_pt_3d_success(initial_positions,noise,delta_T,NOS,theta_degrees, v);
