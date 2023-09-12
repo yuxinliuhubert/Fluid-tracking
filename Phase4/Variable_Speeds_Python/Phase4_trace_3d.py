@@ -53,18 +53,23 @@ def Phase4_trace_3d(initial_position_3d, conditions, vel_expression, xz_proj):
                 
 
     elif dataPiling == 'overlap':
-        for i in range(int(NOS - N)):
-            alpha = -theta * proj_used_index
+        for i in range(round(NOS - N)):
+            alpha = -theta * (proj_used_index - 1)  # alpha is for tracking the degree rotated from the 1st shot
 
-            if proj_used_index == 0:
-                positions_predicted[proj_used_index : N, :] = generateEstimatedPositions(alpha, proj_used_index, NOS_per_section,xz_proj,conditions)
+            if proj_used_index == 1:
+                positions_predicted[proj_used_index:N+1, :] = generateEstimatedPositions(alpha, proj_used_index, NOS_per_section,xz_proj,conditions)
             else:
-                last_positions = positions_predicted[proj_used_index : proj_used_index + prev_NOS_section - 1, :]
+                # take every N shots from every index, and take average of them
+                last_positions = positions_predicted[proj_used_index: proj_used_index + prev_NOS_section - 1, :]
+
                 new_positions = generateEstimatedPositions(alpha, proj_used_index, NOS_per_section,xz_proj,conditions)
-                new_positions = np.concatenate([(new_positions[:len(last_positions), :] + last_positions)/2, new_positions[len(last_positions):, :]], axis=0)
-                positions_predicted[proj_used_index : proj_used_index+len(new_positions)-1, :] = new_positions
-            
+
+                # add the new positions with the old, and then take average
+                new_positions[:len(last_positions), :] = (new_positions[:len(last_positions), :] + last_positions) / 2
+                positions_predicted[proj_used_index:proj_used_index + new_positions.shape[0], :] = new_positions
+
             proj_used_index += 1
+
 
     return positions_predicted
 

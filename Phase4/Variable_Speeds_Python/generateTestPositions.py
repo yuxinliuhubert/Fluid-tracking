@@ -33,3 +33,43 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
     xz_proj = np.column_stack((x_proj, z_proj))
 
     return xz_proj, real_positions
+
+# Filename: particle_motion.py
+
+import numpy as np
+initial_position_A = [0.0, 0, 1]  # [x, y, z]
+initial_position_B = [0.04, 0.01, 0]
+
+# def velocity_A(t):
+#     return lambda t: [np.sin(t), np.cos(t), 1]
+
+# def velocity_B(t):
+#     return lambda t: [np.sin(t + np.pi), np.cos(t + np.pi), -1]
+
+def get_velocity_function(particle_id):
+    if particle_id == 0:
+
+        return lambda t: [np.sin(t), np.cos(t), 0.1]
+    elif particle_id == 1:
+        return lambda t: [0,0,0]
+        return lambda t: [0.1, np.sin(t), np.cos(t)]
+    
+def get_initial_position(particle_id):
+    switcher = {
+        0: initial_position_A,
+        1: initial_position_B
+    }
+    pos = switcher.get(particle_id)
+    if pos:
+        return pos
+    else:
+        raise ValueError("Invalid particle_id. Choose 1 for A and 2 for B.")
+
+# Example usage:
+if __name__ == "__main__":
+    t = 5  # Some time value
+    particle_id = 1  # Choose 1 for A and 2 for B
+
+    vel_func = get_velocity_function(particle_id)
+    velocity = vel_func(t)
+    print(f"Velocity of Particle {particle_id} at time t:", velocity)
