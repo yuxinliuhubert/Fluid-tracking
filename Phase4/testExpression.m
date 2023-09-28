@@ -6,7 +6,7 @@ r = 1; % radius
 switch index
 
     case 0
-        v=@(t)[0.09*sin(t), 0.09*cos(t),0.1];
+        v=@(t)[sin(t), cos(t),0.01];
 
 
     case 1

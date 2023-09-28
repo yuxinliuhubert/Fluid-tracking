@@ -31,7 +31,7 @@ x0 = initial_positions;  % initial position, adjust as required
 
 T = rev/camera_spin_freq;
 % Particle's path as a function of time
-v = testExpression(3,T)
+v = @(t) [0.01,0.01,0.01]
 %
 conditions = [noise, delta_T, NOS,theta_degrees,NOS_per_section,SOD,RDD];
 [xz_proj, real_positions] = generateTestPositions(v,initial_positions,conditions);

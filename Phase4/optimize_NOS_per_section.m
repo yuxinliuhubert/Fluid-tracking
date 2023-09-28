@@ -12,11 +12,11 @@ radius = 1;
 initial_positions = [0,0,0];
 noise = 1e-3;
 
-delta_T = 0.1 % second
+delta_T = 0.02 % second
 
-rev=40; %revolutions of camera for the entire process
+rev=10; %revolutions of camera for the entire process
 
-camera_spin_freq=1;%in Hz or revolution per second
+camera_spin_freq=0.3;%in Hz or revolution per second
 camera_speed = camera_spin_freq*(2*pi*radius); % m/s
 
 theta_degrees = 360*camera_spin_freq*delta_T
