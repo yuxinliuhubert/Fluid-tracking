@@ -8,30 +8,30 @@ radius = 1;
 initial_positions = [0,0,0];
 noise = 1e-3;
 
-delta_T = 0.1 % second
+delta_T = 0.1; % second
 
 rev=10; %revolutions of camera for the entire process
 
 camera_spin_freq=1;%in Hz or revolution per second
 camera_speed = camera_spin_freq*(2*pi*radius); % m/s
 
-theta_degrees = 360*camera_spin_freq*delta_T
+theta_degrees = 360*camera_spin_freq*delta_T;
 
-NOS = round(rev*360/theta_degrees)
-NOS_per_section = 11 % must be larger than 5 to satisfy equations
+NOS = round(rev*360/theta_degrees);
+NOS_per_section = 11; % must be larger than 5 to satisfy equations
 animated = false;
 
 %% auto-calculations of the rest of the parameters derived from the setting above
 % delta_T=theta_degrees/360/camera_spin_freq
 
-shots_per_second = 1/delta_T
+shots_per_second = 1/delta_T;
 % NOS=floor(360*rev/theta_degrees/NOS_per_section)*NOS_per_section;
 a = 5;  % amplitude, adjust as required
 x0 = initial_positions;  % initial position, adjust as required
 
 T = rev/camera_spin_freq;
 % Particle's path as a function of time
-v = @(t) [0.01,0.01,0.01]
+v = @(t) [0.01,0.01,0.01];
 %
 conditions = [noise, delta_T, NOS,theta_degrees,NOS_per_section,SOD,RDD];
 [xz_proj, real_positions] = generateTestPositions(v,initial_positions,conditions);

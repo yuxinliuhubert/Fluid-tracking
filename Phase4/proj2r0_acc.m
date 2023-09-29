@@ -7,21 +7,22 @@ function [r0]= proj2r0_acc(proj,theta,SRD,RDD,delta_T) %takes in any N (even #) 
    col_number_A=round(1+2*NOS, 0); %round function is for avoiding precision error
    A=zeros(   row_number_A,  col_number_A); 
    b=zeros(row_number_A,1);
+   %A=sym(A); %for debugging
        for j = 1:(NOS)  %This for loop is for constructing the equations arising from magnification alone
            %for each increased number of shots there are 2 new variables
            %introduced and 2 equations
-           xi_j=proj(j,1);   zi_j=proj(j,2); 
+           xi_j=proj(j,1);   zi_j=proj(j,2); %get the projection data
            A(2*j-1,1)=1; A( 2*j-1,2*j+1)=-zi_j/SDD; b(2*j-1)=zi_j*SRD/SDD;%for z0 magnification eq
            A(2*j,2*j)=-1;A(2*j,2*j+1)=xi_j/SDD; b(2*j)=-xi_j*SRD/SDD;%for x_0 magnification eq
            %the following 2 rows of codes are for equations transformation extracted from transformation
        end
        
-       x=2*NOS+1; %x is for tracking the index of unfilled rows of the big matrix A
+       IoR=2*NOS+1; %x is for tracking the index of unfilled rows of the big matrix A
       for k = 2:(NOS)
-          A( x:x+1, 2*k : 2*k+1 )=[-1 0; 0 -1];
-          A(x:x+1,2:3)=[cos(theta*(k-1)) sin(theta*(k-1)); -sin(theta*(k-1)) cos(theta*(k-1))];
+          A( IoR:IoR+1, 2*k : 2*k+1 )=[-1 0; 0 -1];
+          A(IoR:IoR+1,2:3)=[cos(theta*(k-1)) sin(theta*(k-1)); -sin(theta*(k-1)) cos(theta*(k-1))];
           
-          x=x+2;
+          IoR=IoR+2;
       end
        
 %% Now, we expand the number of columns to incorporate new variables: u, v , w, a_x, a_y, a_z
@@ -59,6 +60,6 @@ new_col_num=size(A,2);%new_col_num is the number of columns after adding the new
           IoR=IoR+2;
      end
 
-     x=(A\b);
-r0=[x(2),x(3),x(1),x(new_col_num-5),x(new_col_num-4),x(new_col_num-3),x(new_col_num-2),x(new_col_num-1),x(new_col_num)];
+     sol=(A\b);
+r0=[sol(2),sol(3),sol(1),sol(new_col_num-5),sol(new_col_num-4),sol(new_col_num-3),sol(new_col_num-2),sol(new_col_num-1),sol(new_col_num)];
    end
