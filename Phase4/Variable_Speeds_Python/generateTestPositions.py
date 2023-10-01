@@ -37,23 +37,21 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
 # Filename: particle_motion.py
 
 import numpy as np
-initial_position_A = [0.0, 0, 1]  # [x, y, z]
-initial_position_B = [0.04, 0.01, 0]
-
-# def velocity_A(t):
-#     return lambda t: [np.sin(t), np.cos(t), 1]
-
-# def velocity_B(t):
-#     return lambda t: [np.sin(t + np.pi), np.cos(t + np.pi), -1]
+# Modified initial positions for particles A and B
+initial_position_A = [0, 0, 0]  # [x, y, z] (center of the semi-circle for particle A)
+initial_position_B = [0.2, 0, 0]  # [x, y, z] (center of the semi-circle for particle B)
+radius = 0.1  # Radius of the semi-circle
 
 def get_velocity_function(particle_id):
     if particle_id == 0:
-
-        return lambda t: [np.sin(t), np.cos(t), 0.1]
+        # Particle A moves along a semi-circle going upwards in the xz-plane
+        return lambda t: [radius * np.cos(np.pi * t), 0, radius * np.sin(np.pi * t)]
     elif particle_id == 1:
-        return lambda t: [0,0,0]
-        return lambda t: [0.1, np.sin(t), np.cos(t)]
-    
+        # Particle B moves along a semi-circle going downwards in the xz-plane
+        return lambda t: [-radius * np.cos(np.pi * t), 0, -radius * np.sin(np.pi * t)]
+    else:
+        raise ValueError("Invalid particle_id.")
+
 def get_initial_position(particle_id):
     switcher = {
         0: initial_position_A,
@@ -63,7 +61,8 @@ def get_initial_position(particle_id):
     if pos:
         return pos
     else:
-        raise ValueError("Invalid particle_id. Choose 1 for A and 2 for B.")
+        raise ValueError("Invalid particle_id. Choose 0 for A and 1 for B.")
+
 
 # Example usage:
 if __name__ == "__main__":
