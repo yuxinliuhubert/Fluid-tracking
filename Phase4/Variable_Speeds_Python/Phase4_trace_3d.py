@@ -4,7 +4,7 @@ from scipy.stats import norm
 from proj2r0_acc import proj2r0_acc
 from T import T
 
-def Phase4_trace_3d(initial_position_3d, conditions, vel_expression, xz_proj):
+def Phase4_trace_3d(conditions, xz_proj):
     _,delta_T, NOS, theta_degree, N, SRD, RDD,method,dataPiling = conditions
 
     theta = np.deg2rad(theta_degree)
