@@ -18,3 +18,4 @@ def track_particles(data_set, alpha):
 def find_closest_particle(particle, shot):
     distances = np.linalg.norm(shot - particle, axis=1)
     return np.argmin(distances)
+
