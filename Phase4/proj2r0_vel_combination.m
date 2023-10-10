@@ -1,4 +1,4 @@
-function [r0]= proj2r0_acc_combination(xz_proj,theta,SOD,ODD,delta_T) %takes in any N (even #) by 2 of projection coordinates and the angle 
+function [r0]= proj2r0_vel_combination(xz_proj,theta,SOD,ODD,delta_T) %takes in any N (even #) by 2 of projection coordinates and the angle 
    %theta btw the shots and outputs the predicted [x0, y0, z0] sets in coordinates when theta=0 (original
    %position before camera machine starts rotating
     NOS=height(xz_proj); SDD=(SOD+ODD);
@@ -34,16 +34,16 @@ function [r0]= proj2r0_acc_combination(xz_proj,theta,SOD,ODD,delta_T) %takes in 
             
        
 %% Now, we expand the number of columns to incorporate new variables: u, v , w, a_x, a_y, a_z
-A=[A,zeros(height(A),6)];
+A=[A,zeros(height(A),3)];
 new_col_num=size(A,2);%new_col_num is the number of columns after adding the new variables 
 %u, v , w, a_x, a_y, a_z are at the last 6 columns
-u_ind=new_col_num-5; v_ind=u_ind+1;w_ind=u_ind+2;ax_ind=u_ind+3;ay_ind=u_ind+4;az_ind=u_ind+5;
+u_ind=new_col_num-2; v_ind=u_ind+1;w_ind=u_ind+2;
 %% The following is for coefficients related to V and a to magnification equations 
 %only z-directions needs such correction
      for j = 1:(NOS)  
            %w is at new_col_num (the last column)
            A( 2*j-1,w_ind)=delta_T*(j-1);%for w term
-           A( 2*j-1,az_ind)=0.5*(delta_T*(j-1))^2; %for a_z term
+         
            
      end
      %% The following is for adding equations related to u, v, a_x, a_y to
@@ -54,17 +54,16 @@ u_ind=new_col_num-5; v_ind=u_ind+1;w_ind=u_ind+2;ax_ind=u_ind+3;ay_ind=u_ind+4;a
      for k = 2:(NOS)
          trans_count=k-1;      
          T2=delta_T*(k-1);
-         for i=1:trans_count %index i corresponds to the index for the position being transformed to k
-             theta_multi=theta*i; %theta_multi stands for multiples of theta, or number of theta's 
+         for i=1:trans_count %index i corresponds to the index for the position j being transformed to k
+             theta_multi=theta*i; %theta_multi stands for multiples of theta, or number of theta's that's between
+             %j and k
              T1=T2-i*delta_T;
-              A(IoR, u_ind)=cos(2*theta_multi)*(T2-T1);
-              A(IoR+1, u_ind)=-sin(2*theta_multi)*(T2-T1);%for u
-              A(IoR, v_ind)=sin(2*theta_multi)*(T2-T1);
-              A(IoR+1, v_ind)=-cos(2*theta_multi)*(T2-T1);%for v
-%               A(IoR, ax_ind)=0.5*cos(theta_multi)*(T2^2-T1^2);
-%               A(IoR+1, ax_ind)=0.5*-sin(theta_multi)*(T2^2-T1^2);%for ax
-%               A(IoR, ay_ind)=0.5*sin(theta_multi)*(T2^2-T1^2);
-%               A(IoR+1, ay_ind)=0.5*cos(theta_multi)*(T2^2-T1^2);%for ay
+             theta_prime= theta*(k-i-1);%theta_prime stands for the multiple of theta's from the 1st frame to j frame. 
+             % This needs to be distinguished fro theta_multi
+              A(IoR, u_ind)=(cos(theta_prime)*cos(theta_multi)-sin(theta_prime)*sin(theta_multi))*(T2-T1);
+              A(IoR+1, u_ind)=(-cos(theta_prime)*sin(theta_multi)-sin(theta_prime)*cos(theta_multi))*(T2-T1);%for u
+              A(IoR, v_ind)=(sin(theta_prime)*cos(theta_multi)+cos(theta_prime)*sin(theta_multi))*(T2-T1);
+              A(IoR+1, v_ind)=(-sin(theta_prime)*sin(theta_multi)+cos(theta_prime)*cos(theta_multi))*(T2-T1);%for v
             IoR=IoR+2;
          end
        
@@ -74,5 +73,5 @@ u_ind=new_col_num-5; v_ind=u_ind+1;w_ind=u_ind+2;ax_ind=u_ind+3;ay_ind=u_ind+4;a
 
 
      x=(A\b);
-r0=[x(2),x(3),x(1),x(u_ind),x(v_ind),x(w_ind),x(ax_ind),x(ay_ind),x(az_ind)];
+r0=[x(2),x(3),x(1),x(u_ind),x(v_ind),x(w_ind)];
    end
