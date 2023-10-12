@@ -5,7 +5,7 @@ def proj2r0_acc_combination(xz_proj, theta, SOD, ODD, dt):
     SDD = SOD + ODD
     row_number_A = round(2 * NOS + 2 * (np.math.factorial(NOS) / (np.math.factorial(NOS - 2) * 2)), 0)
     col_number_A = round(1 + 2 * NOS, 0)
-    A = np.zeros((int(row_number_A), int(col_number_A))
+    A = np.zeros(int(row_number_A), int(col_number_A))
     b = np.zeros((int(row_number_A), 1))
 
     # This loop is for constructing the equations arising from magnification alone
