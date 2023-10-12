@@ -1,10 +1,10 @@
-SOD = 15; ODD = 400;NOS=4; noise =0; delta_T = 1/68; %detector operates at 68FPS
+SOD = 15; ODD = 400;NOS=10; noise =0; delta_T = 1/68; %detector operates at 68FPS
 
 theta_degree=120*delta_T; %The tube turns 120degrees/sec
 
 theta=theta_degree*pi/180;
 conditions=[noise,delta_T,NOS,theta_degree,SOD,ODD];
-r_expression=@(t) [1,2*t,10*t+3];
+r_expression=@(t) [1+4*t+t^2,2+5*t,6*t+3];
 [xz_proj,real_positions] = generateTestPositions(r_expression, conditions);
 predicted_values=proj2r0_acc(xz_proj,theta_degree*pi/180,SOD,ODD,delta_T);
 %add new particles

@@ -60,18 +60,15 @@ u_ind=new_col_num-5; v_ind=u_ind+1;w_ind=u_ind+2;ax_ind=u_ind+3;ay_ind=u_ind+4;a
              T1=T2-i*dt;
              theta_prime= theta*(k-i-1);%theta_prime stands for the multiple of theta's from the 1st frame to j frame. 
              % This needs to be distinguished fro theta_multi
-             %to add coeffcients for u
               A(IoR, u_ind)=(cos(theta_prime)*cos(delta_theta)-sin(theta_prime)*sin(delta_theta))*(T2-T1);
-              A(IoR+1, u_ind)=(-cos(theta_prime)*sin(delta_theta)-sin(theta_prime)*cos(delta_theta))*(T2-T1);
-              %for v
+              A(IoR+1, u_ind)=(-cos(theta_prime)*sin(delta_theta)-sin(theta_prime)*cos(delta_theta))*(T2-T1);%for u
               A(IoR, v_ind)=(sin(theta_prime)*cos(delta_theta)+cos(theta_prime)*sin(delta_theta))*(T2-T1);
-              A(IoR+1, v_ind)=(-sin(theta_prime)*sin(delta_theta)+cos(theta_prime)*cos(delta_theta))*(T2-T1);
+              A(IoR+1, v_ind)=(-sin(theta_prime)*sin(delta_theta)+cos(theta_prime)*cos(delta_theta))*(T2-T1);%for v
+              A(IoR, ax_ind)=0.5*(cos(theta_prime)*cos(delta_theta)-sin(theta_prime)*sin(delta_theta))*(T2-T1)^2;
+              A(IoR+1, ax_ind)=0.5*(-cos(theta_prime)*sin(delta_theta)-sin(theta_prime)*cos(delta_theta))*(T2-T1)^2;
               %for ax
-              A(IoR, ax_ind)=0.5*(cos(theta_prime)*cos(delta_theta)-sin(theta_prime)*sin(delta_theta))*(T2^2-T1^2);
-              A(IoR+1, ax_ind)=0.5*(-cos(theta_prime)*sin(delta_theta)-sin(theta_prime)*cos(delta_theta))*(T2^2-T1^2);
-              %for ay
-              A(IoR, ay_ind)=0.5*(sin(theta_prime)*cos(delta_theta)+cos(theta_prime)*sin(delta_theta))*(T2^2-T1^2);
-              A(IoR+1, ay_ind)=0.5*(-sin(theta_prime)*sin(delta_theta)+cos(theta_prime)*cos(delta_theta))*(T2^2-T1^2);
+              A(IoR, ay_ind)=0.5*(sin(theta_prime)*cos(delta_theta)-cos(theta_prime)*sin(delta_theta))*(T2-T1)^2;
+              A(IoR+1, ay_ind)=0.5*(-sin(theta_prime)*sin(delta_theta)+cos(theta_prime)*cos(delta_theta))*(T2-T1)^2;%for ay
             IoR=IoR+2;
          end
        
