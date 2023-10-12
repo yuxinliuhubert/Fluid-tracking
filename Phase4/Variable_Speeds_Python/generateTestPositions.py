@@ -72,3 +72,4 @@ if __name__ == "__main__":
     vel_func = get_velocity_function(particle_id)
     velocity = vel_func(t)
     print(f"Velocity of Particle {particle_id} at time t:", velocity)
+
