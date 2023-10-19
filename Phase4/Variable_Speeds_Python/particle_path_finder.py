@@ -1,6 +1,7 @@
 import numpy as np
 from T import T  # Assuming this function rotates a particle by an angle 'alpha'
 
+# make sure we make enough defensive copies of the data
 class ParticlePathFinder:
 
     def __init__(self, alpha) -> None:
@@ -11,9 +12,10 @@ class ParticlePathFinder:
         self.shotData = {}
 
 
+    # input format, list of tuple of two elements (x,y)
     # use default again initlized in the constructor
     def append(self, snapshot):
-
+        # snapshot = snapshot.tolist()
         # store the snapshot in a time sequence dictionary
         if self.current_snapShotIndex not in self.shotData:
             self.shotData[self.current_snapShotIndex] = snapshot
@@ -22,20 +24,12 @@ class ParticlePathFinder:
             self.save_initial_particles(snapshot)
         else:
             # match previous particles to current
+
             self.match_previous_particle_to_current(snapshot)
 
         self.current_snapShotIndex += 1
 
-    def save_initial_particles(self, snapshot):
-        for i in range(0, len(snapshot), 2):
-            particle = tuple(snapshot[i:i+2])
-            particle_id = self.assign_particle_id()
-            if particle_id not in self.particleData:
-                self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
-                
-            self.particleData[particle_id]['coords'].append(particle)
-            self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
-            self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+   
 
 
     # def appendCustomAngle(self, snapshot, alpha):
@@ -124,17 +118,36 @@ class ParticlePathFinder:
 
     def get_particle_id(self, particle,snapshotID):
         target_snapshot = self.shotData[snapshotID]
-        closest_particle_coor = self.find_closest_particle(particle, self.shotData[snapshotID])
+        closest_particle_coor = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]))
 
         for particle_id in self.particleData:
             if target_snapshot[closest_particle_coor] in self.particleData[particle_id]['coords']:
-                return particle_id
+                return tuple(particle_id,self.particleData[particle_id]['coords'])
     
+    def save_initial_particles(self, snapshot):
+        for particle in snapshot:
+            particle_id = self.assign_particle_id()
+            if particle_id not in self.particleData:
+                self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                
+            self.particleData[particle_id]['coords'].append(particle)
+            self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+            self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
     def match_previous_particle_to_current(self, snapshot):
         previous_shot = self.shotData[self.snapShotIndex - 1]
-        for i in range(0, len(previous_shot), 2):
-            particle = tuple(snapshot[i:i+2])
-            particle_id = self.get_particle_id(particle, self.snapShotIndex - 1)
+
+        # create defensive copies of the previous and current shots so we can delete items to keep track without affecting the original data
+        previous_shot_remain = previous_shot.copy()
+        current_shot_remain = snapshot.copy()
+        for i in range(0, min(len(previous_shot),len(snapshot))):
+
+            particle = tuple(snapshot[i])
+            [particle_id, prev_particle_coor] = self.get_particle_id(particle, self.snapShotIndex - 1)
+
+            # delete the points that are matched from the defensive copies
+            previous_shot_remain.remove(prev_particle_coor)
+            current_shot_remain.remove(particle)
 
             if particle_id not in self.particleData:
                 self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
@@ -143,16 +156,30 @@ class ParticlePathFinder:
             self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
             self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
 
-        # if the new snapshot has more particles than the previous one
-        if len(snapshot) > len(self.shotData[snapshot-1]):
+        # if the new snapshot has more particles than the previous one by comparing the length of the remaining particles in the defensive copies
+        if len(current_shot_remain) > len(previous_shot_remain):
             # create new unique particles and save them 
-            for i in range(len(previous_shot), len(snapshot), 2):
-                particle = tuple(snapshot[i:i+2])
+            for particle in current_shot_remain:
                 particle_id = self.assign_particle_id()
                 if particle_id not in self.particleData:
                     self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
                     
                 self.particleData[particle_id]['coords'].append(particle)
+                self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+                self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
+        # if the new snapshot has less particles than the previous one
+        elif len(current_shot_remain) < len(previous_shot_remain):
+            # we estimate the unmatched particle with the trajectory of the closest neighbor (current snapshot position - previous snapshot position) 
+            for prev_particle in previous_shot_remain:
+
+                closest_neighbor_particle_id = self.get_particle_id(prev_particle_coor, self.snapShotIndex-1)
+                closest_neighbor_current_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.snapShotIndex)
+                closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.snapShotIndex - 1)
+                # Calculate the difference between current and previous coordinates (c-p)
+                difference_xy = np.array(closest_neighbor_current_xy) - np.array(closest_neighbor_previous_xy)
+                estiamted_xy = tuple(np.array(particle) + difference_xy)
+                self.particleData[particle_id]['coords'].append(estiamted_xy)
                 self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
                 self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
 
@@ -162,6 +189,24 @@ class ParticlePathFinder:
             return self.particleData[target_snapshotID]
         else:
             return None
+    
+    def get_coordinates_by_snapshot(self, particle_id, snapshot_index):
+        if particle_id in self.particleData:
+            data = self.particleData[particle_id]
+            
+            # Check if the given snapshot index exists in the list of snapshot indices
+            if snapshot_index in data['snapshotIndexList']:
+                # Find the index of the given snapshot index in the list
+                index = data['snapshotIndexList'].index(snapshot_index)
+                
+                # Use the index to access the coordinates
+                coordinates = data['coords'][index]
+                return coordinates
+
+        # Return None if the particle or snapshot index is not found
+        return None
+
+    
         
     def extract_matrices(self):
         matrices = []
@@ -183,6 +228,113 @@ class ParticlePathFinder:
             matrices.append(matrix)
 
         return matrices
+    
+    def get_particle_data(self):
+        return self.particleData
 
 
 # use the existing particles that have a match to predict the ones that do not have a match. 
+
+
+
+class OriginalPathKeeper:
+    
+    
+    def __init__(self, alpha) -> None:
+        self.alpha = alpha
+        self.current_snapShotIndex = 0
+        self.particle_id = 0
+        self.paricleData = {}
+        self.shotData = {}
+        self.columnIndex = 0
+
+    # use default again initlized in the constructor
+    def append(self, snapshot, columnIndex):
+        self.columnIndex = columnIndex
+        # snapshot = snapshot.tolist()
+        # store the snapshot in a time sequence dictionary
+        if self.current_snapShotIndex not in self.shotData:
+            self.shotData[self.current_snapShotIndex] = snapshot
+        
+        if self.current_snapShotIndex == 0:
+            self.save_initial_particles(snapshot)
+        else:
+            # match previous particles to current
+
+            self.match_previous_particle_to_current(snapshot)
+
+        self.current_snapShotIndex += 1
+
+    def save_initial_particles(self, snapshot):
+        for particle in snapshot:
+            particle_id = self.columnIndex
+            if particle_id not in self.particleData:
+                self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                
+            self.particleData[particle_id]['coords'].append(particle)
+            self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+            self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
+            self.columnIndex += 1
+
+    def match_previous_particle_to_current(self, snapshot):
+        previous_shot = self.shotData[self.snapShotIndex - 1]
+
+        # create defensive copies of the previous and current shots so we can delete items to keep track without affecting the original data
+        previous_shot_remain = previous_shot.copy()
+        current_shot_remain = snapshot.copy()
+        for i in range(0, min(len(previous_shot),len(snapshot)) // 2):
+
+            particle = tuple(snapshot[i])
+            [particle_id, prev_particle_coor] = self.get_particle_id(particle, self.snapShotIndex - 1)
+
+            # delete the points that are matched from the defensive copies
+            previous_shot_remain.remove(prev_particle_coor)
+            current_shot_remain.remove(particle)
+
+            if particle_id not in self.particleData:
+                self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                
+            self.particleData[particle_id]['coords'].append(particle)
+            self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+            self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
+        # if the new snapshot has more particles than the previous one by comparing the length of the remaining particles in the defensive copies
+        if len(current_shot_remain) > len(previous_shot_remain):
+            # create new unique particles and save them 
+            for particle in current_shot_remain:
+                particle_id = self.assign_particle_id()
+                if particle_id not in self.particleData:
+                    self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                    
+                self.particleData[particle_id]['coords'].append(particle)
+                self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+                self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
+        # if the new snapshot has less particles than the previous one
+        elif len(current_shot_remain) < len(previous_shot_remain):
+            # we estimate the unmatched particle with the trajectory of the closest neighbor (current snapshot position - previous snapshot position) 
+            for prev_particle in previous_shot_remain:
+
+                closest_neighbor_particle_id = self.get_particle_id(prev_particle_coor, self.snapShotIndex-1)
+                closest_neighbor_current_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.snapShotIndex)
+                closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.snapShotIndex - 1)
+                # Calculate the difference between current and previous coordinates (c-p)
+                difference_xy = np.array(closest_neighbor_current_xy) - np.array(closest_neighbor_previous_xy)
+                estiamted_xy = tuple(np.array(particle) + difference_xy)
+                self.particleData[particle_id]['coords'].append(estiamted_xy)
+                self.particleData[particle_id]['snapshotIndexList'].append(self.snapShotIndex)
+                self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
+
+    def get_particle_id(self, particle,snapshotID):
+        target_snapshot = self.shotData[snapshotID]
+        closest_particle_coor = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]))
+
+        for particle_id in self.particleData:
+            if target_snapshot[closest_particle_coor] in self.particleData[particle_id]['coords']:
+                return tuple(particle_id,self.particleData[particle_id]['coords'])
+
+    def assign_particle_id(self):
+        returnID = self.particle_id
+        self.particle_id += 1
+        return returnID
