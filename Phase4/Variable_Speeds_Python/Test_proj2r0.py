@@ -5,6 +5,3 @@ z_proj=np.array([[2.8571], [4.6202], [-87.4060], [-3.8000], [-2.2091], [-1.9513]
 xz_proj = np.column_stack((x_proj, z_proj))
 print(np.math.pi)
 print(proj2r0_acc_combination(xz_proj,np.math.pi/6,1,1,1))
-# for j in range(1,3):
-#     print(j)
-# print(np.zeros((2,3)))
