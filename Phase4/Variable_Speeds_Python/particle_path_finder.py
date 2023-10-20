@@ -127,6 +127,8 @@ class ParticlePathFinder:
     def save_initial_particles(self, snapshot):
         for particle in snapshot:
             particle_id = self.assign_particle_id()
+            # if self.paricleData is None:
+            #     self.paricleData = {particle_id: particle}
             if particle_id not in self.particleData:
                 self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
                 
@@ -135,14 +137,14 @@ class ParticlePathFinder:
             self.particleData[particle_id]['snapshotIndexSet'].add(self.snapShotIndex)
 
     def match_previous_particle_to_current(self, snapshot):
-        previous_shot = self.shotData[self.snapShotIndex - 1]
+        previous_shot = self.shotData[self.current_snapShotIndex - 1]
 
         # create defensive copies of the previous and current shots so we can delete items to keep track without affecting the original data
         previous_shot_remain = previous_shot.copy()
         current_shot_remain = snapshot.copy()
         for i in range(0, min(len(previous_shot),len(snapshot))):
 
-            particle = tuple(snapshot[i])
+            particle = snapshot[i]
             [particle_id, prev_particle_coor] = self.get_particle_id(particle, self.snapShotIndex - 1)
 
             # delete the points that are matched from the defensive copies
