@@ -1,6 +1,6 @@
 import numpy as np
 
-def proj2r0_acc(proj, theta, SRD, RDD, delta_T):
+def proj2r0_acc_old(proj, theta, SRD, RDD, delta_T):
     NOS = len(proj)
     SDD = SRD + RDD
     row_number_A = 2 * NOS + 2 * (NOS - 1)
@@ -50,7 +50,7 @@ def proj2r0_acc(proj, theta, SRD, RDD, delta_T):
     r0 = [x[1], x[2], x[0], x[new_col_num-6], x[new_col_num-5], x[new_col_num-4], x[new_col_num-3], x[new_col_num-2], x[new_col_num-1]]
     return r0
 
-def proj2r0_acc_combination(xz_proj, theta, SOD, ODD, dt):
+def proj2r0_acc(xz_proj, theta, SOD, ODD, dt):
     NOS = xz_proj.shape[0]
     SDD = SOD + ODD
     row_number_A = int(2 * NOS + 2 * (np.math.factorial(NOS) / (np.math.factorial(NOS - 2) * 2)))
