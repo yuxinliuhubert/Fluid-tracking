@@ -37,83 +37,6 @@ class ParticlePathFinder:
 
         self.current_snapShotIndex += 1
 
-   
-
-
-    # def appendCustomAngle(self, snapshot, alpha):
-    #     if self.current_snapShotIndex == 0:
-    #         self.outputMatrix = snapshot
-    #         return
-    #     self.adjust_matrix_size(snapshot, alpha)
-    #     self.current_snapShotIndex += 1
-    
-        # newShot
-        # self.outputMatrix = np.concatenate((self.outputMatrix, self.newShot), axis=1)
-        # get the rows and columns of the data set
-        # compare column of data set with existing matrix, if N_dataset > matrix, expand the matrix, otherwise:
-        # 1. match the existing points with current data set 
-        # 2. for the remaining points in the existing matrix, "hold the position" until more data is avaialble 
-
-        # data set shape -> 1 row, N*2 columns, where N is the number of particles. 1st is x1, 2nd column is y1, 3rd is x2, 4th is y2, etc.
-    
-    # def adjust_matrix_size(self, snapshot, alpha):
-    #     n_particles = snapshot.shape[1] // 2
-    #      # If the number of particles in the dataset is greater than in the output matrix,
-    #     # then expand the matrix
-    #     if snapshot.shape[1] > self.outputMatrix.shape[1]:
-    #         num_particles_to_match = self.outputMatrix.shape[1]
-    #         additional_columns = 2 * n_particles - self.outputMatrix.shape[1]
-    #         self.outputMatrix = np.concatenate((self.outputMatrix, np.zeros((self.outputMatrix.shape[0], additional_columns))), axis=1)            
-    #         self.match_particles(snapshot, alpha, num_particles_to_match)
-
-    #     else:
-    #         self.match_particles(snapshot, alpha, self.outputMatrix.shape[1] // 2)
-
-        
-
-
-# find the closest neighbors of the unmatched particles with matched particles in the same shot. translate the movement of the matched particle to unmatched
-# 2. in cases where the unmatched parcile has a history, we can just use the historical movement to predict the next position.
-    # def match_particles(self, current_snapshot, alpha, num_particles_to_match):
-    #     if self.current_snapShotIndex == 0:
-    #         print("You cannot track particles without at least 2 snapshots.")
-    #         return
-        
-    #     # get the previous snapshot
-    #     previous_snapshot = self.outputMatrix[self.current_snapShotIndex, :]
-    #     prev_N = previous_snapshot.shape[1] // 2
-    #     # N = number of particles in the current snapshot
-    #     M, N = current_snapshot.shape[0], current_snapshot.shape[1] // 2  # Assuming each particle has 2 coordinates (x, z)
-    #     matched_particles = np.zeros((1, N * 2))
-
-    #     # match the available particles (previous and current both available)
-    #     for n in range(0, 2 * num_particles_to_match, 2):
-
-    #         # if there are no more particles in the current snapshot, we estimate the positions of the unmatched particles using neighboring particles'
-    #         # movements from previous to current snapshot
-    #         if current_snapshot.shape[1] == 0:
-
-    #             continue
-    #         particle = previous_snapshot[n:n+2]
-    #         closest_particle_index = self.find_closest_particle(particle, current_snapshot)
-    #         matched_particles[2*closest_particle_index:2*closest_particle_index+2] = particle
-    #         # remove the matched particle from the previous snapshot
-    #         current_snapshot = np.delete(current_snapshot, closest_particle_index, axis=1)
-
-    #     # match the remaining particles (only current available)
-    #     if current_snapshot.shape[1] > 1:
-    #         matched_particles = np.concatenate((matched_particles, current_snapshot), axis=1)
-
-
-
-    #     self.outputMatrix = np.concatenate((self.outputMatrix, matched_particles), axis=0)
-    #     return 
-    
-
-    # def estimate_position_with_neighbor(self, particle, shot):
-    #     # find the closest neighbor of the particle in the current shot, and use the movement of the neighbor to predict the position of the particle
-
-
 
     def find_closest_particle(self, particle, shot, closest_rank=1):
         print("shot in find closest particle: ",shot)
@@ -163,18 +86,6 @@ class ParticlePathFinder:
         print("not found")
         KeyError("particle_id not found")
 
-        
-
-        # if matched we have to eliminate the ones with matching.
-        # print("particleData: ", self.particleData)
-        # for particle_id in self.particleData:
-
-        #     print("particle_id: ",particle_id)
-        #     print("particleData_individual: ", self.particleData[particle_id]['coords'][snapshotID])
-        #     # print("target_snapshot[closest_particle_coor]: ",target_snapshot[closest_particle_coor])
-        #     if target_snapshot[closest_particle_coor].all() == self.particleData[particle_id]['coords'][snapshotID].all():
-
-        #         return particle_id,self.particleData[particle_id]['coords'][snapshotID]
     
     def save_initial_particles(self, snapshot):
         for particle in snapshot:
