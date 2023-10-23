@@ -2,9 +2,9 @@ function [xz_proj,real_positions] = generateTestPositions(r_expression, conditio
 
 
 
-[noise, delta_T , NOS, theta_degree, SOD , RDD] = deal(conditions(1),conditions(2), conditions(3),conditions(4),conditions(5),conditions(6));
+[noise, delta_T , NOS, theta, SOD , RDD] = deal(conditions(1),conditions(2), conditions(3),conditions(4),conditions(5),conditions(6));
 
-theta = theta_degree/180*pi;
+
 %% First shot: without rotation
 r0_0=r_expression(0); %initial position
 real_positions=zeros(NOS,3);
