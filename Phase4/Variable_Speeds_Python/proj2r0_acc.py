@@ -169,6 +169,7 @@ def proj2r0_vel(xz_proj, theta, SOD, ODD, dt):
 def proj2r0_stationary(xz_proj, theta, SOD, ODD, dt):
     NOS = xz_proj.shape[0]
     SDD = SOD + ODD
+    print("NOS", NOS)
     row_number_A = int(2 * NOS + 2 * (np.math.factorial(NOS) / (np.math.factorial(NOS - 2) * 2)))
     col_number_A = int(1 + 2 * NOS)
     A = np.zeros((row_number_A, col_number_A))
@@ -196,5 +197,5 @@ def proj2r0_stationary(xz_proj, theta, SOD, ODD, dt):
 
  
     x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
-    r0 = [x[1], x[2], x[0], 0,0,0, 0,0,0]
+    r0 = [x[1], x[2], x[0]]
     return r0

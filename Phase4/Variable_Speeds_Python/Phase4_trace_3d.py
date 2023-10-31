@@ -2,6 +2,7 @@ import numpy as np
 from scipy import integrate
 from scipy.stats import norm
 from proj2r0_acc import proj2r0_acc
+from proj2r0_acc import proj2r0_stationary
 from T import T
 
 def Phase4_trace_3d(conditions, xz_proj):
@@ -18,6 +19,8 @@ def Phase4_trace_3d(conditions, xz_proj):
     prev_NOS_section = NOS_per_section
     print("NOS: ",NOS)
     print("NOS_per_Section: ",NOS_per_section) 
+
+    NOS = xz_proj.shape[0] # TEMPORARY FIX
 
     if dataPiling == 'serial':
         while proj_used_index < NOS:
@@ -36,8 +39,8 @@ def Phase4_trace_3d(conditions, xz_proj):
                 # positions_predicted[proj_used_index : proj_used_index+NOS_per_section, :] = temp
                 # proj_used_index += NOS_per_section
 
-                prev_proj_index = proj_used_index
-                proj_used_index = NOS - NOS_per_section
+                prev_proj_index = proj_used_index 
+                proj_used_index = NOS - NOS_per_section -1
                 alpha = -theta*(proj_used_index)
                 last_positions = positions_predicted[proj_used_index : prev_proj_index, :]
                 new_positions = generateEstimatedPositions(alpha, proj_used_index, NOS_per_section,xz_proj,conditions)
@@ -49,7 +52,7 @@ def Phase4_trace_3d(conditions, xz_proj):
 
                 positions_predicted[proj_used_index : proj_used_index+NOS_per_section, :] = combined_positions
                 # print("retro called")
-                proj_used_index += NOS_per_section + 1
+                proj_used_index += NOS_per_section 
                 
 
     elif dataPiling == 'overlap':
@@ -77,6 +80,28 @@ def generateEstimatedPositions(alpha, proj_used_index, N, xz_proj, conditions):
     _,delta_T, _, theta_degree, _, SRD, RDD,method,dataPiling = conditions
     theta = np.deg2rad(theta_degree)
     positions_predicted = np.zeros((N, 3))
+
+    if method == 'static':
+
+        print("proj_used_index",proj_used_index)
+        print("project_used_inidex + N",proj_used_index+N)
+        print(xz_proj[proj_used_index : proj_used_index+N, :])
+        print("N",N)
+        print("xz_proj shape",xz_proj.shape)
+        values_this_round = proj2r0_stationary(xz_proj[proj_used_index : proj_used_index+N-1, :], theta, SRD, RDD, delta_T)
+        x0, y0, z0= values_this_round[0], values_this_round[1], values_this_round[2]
+        print("sfhsifdskfsklfdhskfh,", values_this_round)
+        position_rotated = np.transpose(T([x0, y0, z0], alpha))
+        x0, y0, z0 = position_rotated[0][0], position_rotated[0][1], position_rotated[0][2]
+        u = 0
+        v = 0
+        w = 0
+        positions_predicted[0, :] = position_rotated
+        for j in range(1, N):
+            time = delta_T * (j)
+            positions_predicted[j, :] = [x0+u*time, y0+v*time, z0+w*time]
+
+        return positions_predicted
 
     values_this_round = proj2r0_acc(xz_proj[proj_used_index : proj_used_index+N-2, :], theta, SRD, RDD, delta_T)
 
@@ -106,5 +131,8 @@ def generateEstimatedPositions(alpha, proj_used_index, N, xz_proj, conditions):
         for j in range(1, N):
             time = delta_T * (j)
             positions_predicted[j, :] = [x0+u*time, y0+v*time, z0+w*time]
+
+
+
 
     return positions_predicted
