@@ -64,6 +64,26 @@ class ParticlePathFinder:
         return closest_particle_id_in_shot, self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
 
 
+    def get_particle_id_from_unmatched_ids(self,particle, snapshotID,matched_id_list):
+        id_list = list(range(0, len(self.particleData)))
+        print("id_list before operation: ",id_list)
+        print("matched_id_list: ",matched_id_list)
+        for id in matched_id_list:
+            id_list.remove(id)
+
+        print("id_list: ",id_list)
+
+        target_coordinates = []
+        for particle_id in id_list:
+            particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
+            print("particle_relative_shotID: ",particle_relative_shotID)
+            target_coordinates.append(self.particleData[particle_id]['coords'][particle_relative_shotID])
+        print("target_coordinates: ",target_coordinates)
+        closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
+        
+        return closest_particle_id_in_shot, self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+
+    
     def get_particle_id(self, particle,snapshotID, closest_rank=1):
         target_snapshot = self.shotData[snapshotID]
         closest_particle_id_in_shot = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]),closest_rank)
@@ -248,7 +268,7 @@ class ParticlePathFinder:
             
             for prev_particle in previous_shot_remain:
 
-                previous_particle_id, prev_particle_coor = self.get_particle_id(prev_particle_coor, self.current_snapShotIndex-1)
+                previous_particle_id, prev_particle_coor = self.get_particle_id_from_unmatched_ids(prev_particle_coor, self.current_snapShotIndex-1,matched_particles_id)
                 
                 print("id list: ",matched_particles_id)
                 closest_neighbor_particle_id, closest_neighbor_previous_xy = self.get_particle_id_from_available_ids(prev_particle, self.current_snapShotIndex - 1, matched_particles_id)
@@ -260,12 +280,14 @@ class ParticlePathFinder:
                 # closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.current_snapShotIndex - 1)
                 # Calculate the difference between current and previous coordinates (c-p)
                 difference_xy = np.array(closest_neighbor_current_xy) - np.array(closest_neighbor_previous_xy)
-   
+                print("previous_particle_id PPPPPPPPPPPPPPPPPPPPPPP: ",previous_particle_id)
                 estiamted_xy = tuple(np.array(prev_particle_coor) + difference_xy)
                 self.particleData[previous_particle_id]['coords'].append(estiamted_xy)
                 self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
                 self.particleData[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
                 self.shotData[self.current_snapShotIndex].append(np.array(estiamted_xy))
+
+            print("data after everything, ",self.particleData)
 
 
     def find_array_in_list(self,target, list_of_arrays):
