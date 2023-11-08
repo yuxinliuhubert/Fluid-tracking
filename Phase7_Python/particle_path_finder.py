@@ -270,18 +270,37 @@ class ParticlePathFinder:
 
                 previous_particle_id, prev_particle_coor = self.get_particle_id_from_unmatched_ids(prev_particle_coor, self.current_snapShotIndex-1,matched_particles_id)
                 
-                print("id list: ",matched_particles_id)
-                closest_neighbor_particle_id, closest_neighbor_previous_xy = self.get_particle_id_from_available_ids(prev_particle, self.current_snapShotIndex - 1, matched_particles_id)
-                print("closest_neighbor_particle_id: ",closest_neighbor_particle_id)
-                relativeIndex = self.find_relative_snapshotIndex(closest_neighbor_particle_id, self.current_snapShotIndex)
-                print(relativeIndex)
-                closest_neighbor_current_xy = self.particleData[closest_neighbor_particle_id]['coords'][relativeIndex]
-                # print("closest_neighbor_current_xy: ",closest_neighbor_current_xy)
-                # closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.current_snapShotIndex - 1)
-                # Calculate the difference between current and previous coordinates (c-p)
-                difference_xy = np.array(closest_neighbor_current_xy) - np.array(closest_neighbor_previous_xy)
-                print("previous_particle_id PPPPPPPPPPPPPPPPPPPPPPP: ",previous_particle_id)
-                estiamted_xy = tuple(np.array(prev_particle_coor) + difference_xy)
+                # neighbor strategy
+                if self.current_snapShotIndex <= 10:
+                    print("id list: ",matched_particles_id)
+                    closest_neighbor_particle_id, closest_neighbor_previous_xy = self.get_particle_id_from_available_ids(prev_particle, self.current_snapShotIndex - 1, matched_particles_id)
+                    print("closest_neighbor_particle_id: ",closest_neighbor_particle_id)
+                    relativeIndex = self.find_relative_snapshotIndex(closest_neighbor_particle_id, self.current_snapShotIndex)
+                    print(relativeIndex)
+                    closest_neighbor_current_xy = self.particleData[closest_neighbor_particle_id]['coords'][relativeIndex]
+                    # print("closest_neighbor_current_xy: ",closest_neighbor_current_xy)
+                    # closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.current_snapShotIndex - 1)
+                    # Calculate the difference between current and previous coordinates (c-p)
+                    difference_xy = np.array(closest_neighbor_current_xy) - np.array(closest_neighbor_previous_xy)
+
+                    estiamted_xy = tuple(np.array(prev_particle_coor) + difference_xy)
+
+
+
+                else:
+                    # historical velocity strategy
+                    last10Coordiantes = []
+                    k = 0.8
+                    for i in range (1,10):
+
+                        last10Coordiantes.append(self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - i)])
+                        
+                    velocity_array = np.diff(np.array(last10Coordiantes), axis=0)
+
+                
+                
+                    estiamted_xy = np.average(velocity_array, axis=0)
+
                 self.particleData[previous_particle_id]['coords'].append(estiamted_xy)
                 self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
                 self.particleData[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
