@@ -292,14 +292,18 @@ class ParticlePathFinder:
                     last10Coordiantes = []
                     k = 0.8
                     for i in range (1,10):
+                    
 
                         last10Coordiantes.append(self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - i)])
+                        # k = k**2
                         
                     velocity_array = np.diff(np.array(last10Coordiantes), axis=0)
 
+                    previous_xy = self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - 1)]
+
                 
                 
-                    estiamted_xy = np.average(velocity_array, axis=0)
+                    estiamted_xy = previous_xy + np.average(velocity_array, axis=0)
 
                 self.particleData[previous_particle_id]['coords'].append(estiamted_xy)
                 self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
