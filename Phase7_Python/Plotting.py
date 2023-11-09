@@ -27,8 +27,8 @@ def plotting_single(positions, particle_id,ax):
         x2, y2, z2 = positions[i+1]
         
         # Draw a line segment with the computed color
-        ax.plot([x1, x2], [y1, y2], [z1, z2], color=color_brightness)
-    ax.plot([x1, x2], [y1, y2], [z1, z2], color=color_brightness,label='particle'+str(particle_id-1))
+        ax.scatter([x1, x2], [y1, y2], [z1, z2], color=color_brightness)
+    ax.scatter([x1, x2], [y1, y2], [z1, z2], color=color_brightness,label='particle'+str(particle_id-1))
     # Label the axes
     ax.set_xlabel('X')
     ax.set_ylabel('Y')

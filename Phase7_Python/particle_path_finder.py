@@ -22,7 +22,7 @@ class ParticlePathFinder:
         if self.current_snapShotIndex != 0:
             print("previous shot: ", self.shotData[self.current_snapShotIndex - 1])
 
-        
+    
         if self.current_snapShotIndex not in self.shotData:
             self.shotData[self.current_snapShotIndex] = snapshot
         
@@ -197,6 +197,7 @@ class ParticlePathFinder:
 
         matched_particles_id = []
 
+
         # while there are still particles unmatched, we keep matching
         while len(previous_shot_remain) > 0 and len(current_shot_remain) > 0:
             
@@ -298,6 +299,8 @@ class ParticlePathFinder:
                         # k = k**2
                         
                     velocity_array = np.diff(np.array(last10Coordiantes), axis=0)
+                    print("velocity_array: ",velocity_array)
+                    print("last10Coordiantes: ",last10Coordiantes)
 
                     previous_xy = self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - 1)]
 
