@@ -10,7 +10,7 @@ class ParticlePathFinder:
         self.particle_id = 0
         self.particleData = {}
         self.shotData = {}
-        self.learning_rate = 0.5
+        self.learning_rate = 0.2
 
 
     # input format, list of tuple of two elements (x,y)
@@ -324,7 +324,7 @@ class ParticlePathFinder:
 
 
     # return historical linear velocity
-    def historicalLinearVelocity(self, previous_particle_id, num_of_snapshots_to_check, discount_factor=1):
+    def historicalLinearVelocity(self, previous_particle_id, num_of_snapshots_to_check, discount_factor=1, direction="backward"):
         last10Coordiantes = []
 
         for i in range (1,num_of_snapshots_to_check + 1):
@@ -334,8 +334,15 @@ class ParticlePathFinder:
         velocity_array = np.diff(np.array(last10Coordiantes), axis=0)
         final_velocity = np.zeros(2)
         k = 0
+
         for i in range(len(velocity_array)):
-            final_velocity += velocity_array[i] * discount_factor**(i+1)
+            if direction == "backward":
+                final_velocity += velocity_array[i] * discount_factor**(i+1)
+            elif direction == "forward":
+                final_velocity += velocity_array[len(velocity_array)-1-i] * discount_factor**(i+1)
+            else:
+                # assume backward
+                final_velocity += velocity_array[i] * discount_factor**(i+1)
             k += discount_factor**(i+1)
         return final_velocity/k
 
