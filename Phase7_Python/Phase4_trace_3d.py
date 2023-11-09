@@ -83,7 +83,7 @@ def generateEstimatedPositions(alpha, proj_used_index, N, xz_proj, conditions):
     if method == 'acceleration':
         x0, y0, z0, u, v, w, a_x, a_y, a_z = values_this_round
         position_rotated =  np.transpose(T([x0, y0, z0], alpha))
-        print("position_rotated",position_rotated[0][1])
+        # print("position_rotated",position_rotated[0][1])
         x0, y0, z0 = position_rotated[0][0], position_rotated[0][1], position_rotated[0][2]
         positions_predicted[0, :] = position_rotated
         velocity_rotated = np.transpose(T([u, v, w], alpha))
