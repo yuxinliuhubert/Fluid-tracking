@@ -10,8 +10,7 @@ class ParticlePathFinder:
         self.particle_id = 0
         self.particleData = {}
         self.shotData = {}
-        self.learning_rate = 0.2
-
+        self.learning_rate = 0.3
 
     # input format, list of tuple of two elements (x,y)
     # use default again initlized in the constructor
