@@ -12,7 +12,7 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
     r0_0 = initial_position_3d
     real_positions = np.zeros((NOS, 3))
     real_positions[0,:] = initial_position_3d
-    M_p = (SRD + RDD) / (SRD + r0_0[2])
+    M_p = (SRD + RDD) / (SRD + r0_0[1])
 
     x_proj = np.zeros(NOS)
     z_proj = np.zeros(NOS)

@@ -1,16 +1,28 @@
 import numpy as np
 from T import T  # Assuming this function rotates a particle by an angle 'alpha'
 import heapq
+from Phase4_trace_3d import Phase4_trace_3d
 # make sure we make enough defensive copies of the data
 class ParticlePathFinder:
 
-    def __init__(self, alpha) -> None:
+    def __init__(self, alpha,conditions, reconstruction_conditions) -> None:
         self.alpha = alpha
         self.current_snapShotIndex = 0
         self.particle_id = 0
-        self.particleData = {}
+        self.particleData_2D = {}
         self.shotData = {}
-        self.learning_rate = 0.3
+        self.learning_rate_2D = conditions[0]
+        self.motion_randomness = conditions[1]
+        self.learning_rate_3D = conditions[2]
+        self.reconstruction_conditions = reconstruction_conditions.copy()
+        self.NOS = reconstruction_conditions[2]
+        self.NOS_per_section = reconstruction_conditions[4]
+        self.reconstruction_conditions[2] = self.NOS_per_section + 1
+
+        # # Pack conditions into a list
+        # conditions = [noise, delta_T, NOS, theta_degrees, NOS_per_section, SRD, RDD,method,dataPiling]
+
+
 
     # input format, list of tuple of two elements (x,y)
     # use default again initlized in the constructor
@@ -59,13 +71,13 @@ class ParticlePathFinder:
         
         for particle_id in id_list:
             particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-            target_coordinates.append(self.particleData[particle_id]['coords'][particle_relative_shotID])
+            target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
         closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
-        return closest_particle_id_in_shot, self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+        return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
 
 
     def get_particle_id_from_unmatched_ids(self,particle, snapshotID,matched_id_list):
-        id_list = list(range(0, len(self.particleData)))
+        id_list = list(range(0, len(self.particleData_2D)))
         # print("id_list before operation: ",id_list)
         # print("matched_id_list: ",matched_id_list)
         for id in matched_id_list:
@@ -77,14 +89,14 @@ class ParticlePathFinder:
         for particle_id in id_list:
             particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
             # print("particle_relative_shotID: ",particle_relative_shotID)
-            target_coordinates.append(self.particleData[particle_id]['coords'][particle_relative_shotID])
+            target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
         # print("target_coordinates: ",target_coordinates)
         closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
         
-        return closest_particle_id_in_shot, self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+        return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
 
     
-    def get_particle_id(self, particle,snapshotID, closest_rank=1):
+    def get_particle_id(self, particle,snapshotID, closest_rank=1,tolerance=0.01):
         target_snapshot = self.shotData[snapshotID]
         closest_particle_id_in_shot = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]),closest_rank)
 
@@ -94,7 +106,7 @@ class ParticlePathFinder:
         # print("particleData with id: ",self.particleData[closest_particle_id_in_shot])
         # print("snapshotID relative: ",particle_relative_shotID)
         # print("particleData on this shot: ",self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID])
-        for particle_id in self.particleData:
+        for particle_id in self.particleData_2D:
 
             # print("iterating at particle_id: ",particle_id)
             # print("particleData_individual: ", self.particleData[particle_id]['coords'][snapshotID])
@@ -102,16 +114,20 @@ class ParticlePathFinder:
             # print("self.particleData[particle_id]['coords'][snapshotID]: ",self.particleData[particle_id]['coords'])
 
             particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
+            distance = np.linalg.norm(target_snapshot[closest_particle_id_in_shot] - self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
             # print("particle_relative_shotID: ",particle_relative_shotID)    
-            if np.array_equal(target_snapshot[closest_particle_id_in_shot], self.particleData[particle_id]['coords'][particle_relative_shotID]):
+            if distance < tolerance:
                 # print("found the particle id: ",particle_id)
                 # particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
                 # print("particle_relative_shotID: ",particle_relative_shotID)
-                print(self.particleData[particle_id]['coords'][particle_relative_shotID])
+                print(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
             
-                return particle_id, self.particleData[particle_id]['coords'][particle_relative_shotID]
+                return particle_id, self.particleData_2D[particle_id]['coords'][particle_relative_shotID]
             
+
+                
         print("not found")
+        print("orignal particle: ", target_snapshot[closest_particle_id_in_shot], " minus: ", self.particleData_2D['coords'][-1])
         KeyError("particle_id not found")
 
     
@@ -120,12 +136,12 @@ class ParticlePathFinder:
             particle_id = self.assign_particle_id()
             # if self.paricleData is None:
             #     self.paricleData = {particle_id: particle}
-            if particle_id not in self.particleData:
-                self.particleData[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+            if particle_id not in self.particleData_2D:
+                self.particleData_2D[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
                 
-            self.particleData[particle_id]['coords'].append(particle)
-            self.particleData[particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
-            self.particleData[particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
+            self.particleData_2D[particle_id]['coords'].append(particle)
+            self.particleData_2D[particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
+            self.particleData_2D[particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
 
 
 
@@ -183,6 +199,38 @@ class ParticlePathFinder:
 
 
     def match_previous_particle_to_current(self, current_shot):
+
+        def is_motion_random(historical_vel, observed_vel, motion_randomness):
+            threshold = 1e-6
+            is_random = False
+            if np.isscalar(historical_vel):
+                length_of_historical_vel = 1
+            else:
+                length_of_historical_vel = len(historical_vel)
+    
+            for i in range(length_of_historical_vel):
+                if np.isscalar(observed_vel):
+                    compare_observe_vel = observed_vel
+                else:
+                    compare_observe_vel = observed_vel[i]
+
+                if np.isscalar(historical_vel):
+                    compare_historical_vel = historical_vel
+                else:
+                    compare_historical_vel = historical_vel[i]
+
+                if compare_historical_vel <= threshold:
+                    # stationary, no division
+                    x = abs(compare_historical_vel - compare_observe_vel) > motion_randomness
+                else:
+                    x = abs(compare_historical_vel - compare_observe_vel) > motion_randomness
+                
+                if x:
+                    is_random = True
+                    break
+
+            return is_random
+
         previous_shot = self.shotData[self.current_snapShotIndex - 1]
 
         # create defensive copies of the previous and current shots so we can delete items to keep track without affecting the original data
@@ -212,9 +260,12 @@ class ParticlePathFinder:
             print(" ")
             print("---------------------------------")
             print("current_snapshot: ",self.current_snapShotIndex)
-            [previous_particle_id, prev_particle_coor] = self.get_particle_id(previous_shot[previous_index], self.current_snapShotIndex - 1)
+            # [previous_particle_id, prev_particle_coor] = self.get_particle_id(previous_shot[previous_index], self.current_snapShotIndex - 1)
             # print("particleData: ",self.particleData)
-            
+            if matched_particles_id is None:
+                [previous_particle_id, prev_particle_coor] = self.get_particle_id(previous_shot[previous_index], self.current_snapShotIndex - 1)
+            else:
+                [previous_particle_id, prev_particle_coor] = self.get_particle_id_from_unmatched_ids(previous_shot[previous_index], self.current_snapShotIndex - 1,matched_particles_id)
             # delete the points that are matched from the defensive copies
             if not self.find_array_in_list(prev_particle_coor, previous_shot_remain) or not self.find_array_in_list(current_particle_to_match, current_shot_remain):
                 # print("skip this occurance \n \n")
@@ -236,8 +287,10 @@ class ParticlePathFinder:
             print("we are matching: ",prev_particle_coor, " with ", current_particle_to_match, " particle id: ",previous_particle_id)
 
 
-            if previous_particle_id not in self.particleData:
-                self.particleData[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+            if previous_particle_id not in self.particleData_2D:
+                self.particleData_2D[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+
+            
 
 
             if self.current_snapShotIndex > 10:
@@ -247,25 +300,101 @@ class ParticlePathFinder:
                 
                 observed_vel = current_shot[current_index] - previous_shot[previous_index]
 
-                # calculate position from learning factor
-                learning_rate = self.learning_rate
-                exploitation_rate = 1 - learning_rate
-                final_xy = estimated_vel_from_historical_velocity*exploitation_rate + observed_vel*learning_rate + previous_shot[previous_index]
-                self.particleData[previous_particle_id]['coords'].append(final_xy)
 
-                # modify shot data to keep the consistency
-                self.shotData[self.current_snapShotIndex][current_index] = final_xy
+
+                
+                if is_motion_random(estimated_vel_from_historical_velocity, observed_vel, self.motion_randomness):
+
+                    print("motion randomness detected in particle: ",previous_particle_id)
+                    # motion randomness is too high, we then conduct a reconstruction to verify if the point is valid
+                    # 3D reconstruction and re sorting strategy 
+                    previous_relative_index = self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - 1)
+
+                    compensation_3D = False
+                    # make sure we have enough data to do the reconstruction
+                    if previous_relative_index - self.NOS_per_section > 8 and compensation_3D == True:
+
+                        # take the previous NOS_per_section data to do the reconstruction for comparison
+
+                        # print()
+
+                        previous_2D_shots_selected = self.particleData_2D[previous_particle_id]['coords'][previous_relative_index - self.NOS_per_section : previous_relative_index]
+                        print("length of previous_2D_shots_selected: ",len(previous_2D_shots_selected))
+
+                        # 
+                        self.reconstruction_conditions[2] = self.NOS
+                        previous_estimated_positions_single = Phase4_trace_3d(self.reconstruction_conditions, np.array(self.particleData_2D[previous_particle_id]['coords'][:]))
+
+                        self.reconstruction_conditions[2] = self.NOS_per_section + 1
+                        # take the previous NOS_per_section data and the current shot to be added to do the reconstruction and compare
+                        current_estimated_positions_single = Phase4_trace_3d(self.reconstruction_conditions, np.row_stack([np.array(self.particleData_2D[previous_particle_id]['coords'][previous_relative_index - self.NOS_per_section + 1 : previous_relative_index + 1]), current_particle_to_match]))
+
+                        learning_rate_3D = self.learning_rate_3D
+                        exploitation_rate_3D = 1 - learning_rate_3D
+
+                        # get observation velocity from the reconstruction
+                        observed_vel_3D = current_estimated_positions_single[-1,:] - current_estimated_positions_single[-2,:]
+
+                        # take the last 10 data points to do the historical velocity estimation
+                        # take the last 10 rows and all columns
+                        historical_vel_3D = np.mean(np.diff(previous_estimated_positions_single[-10:,:], axis=0))
+        
+
+                        # re-calculate the final position if adjustment is needed
+                        adjusted_vel_3D = observed_vel_3D
+                        j = 0
+                        for vel in adjusted_vel_3D:
+                            if is_motion_random(historical_vel_3D, observed_vel_3D[j], self.motion_randomness):
+                                adjusted_vel_3D[j] = historical_vel_3D * exploitation_rate_3D + vel * learning_rate_3D
+
+                            j += 1
+
+                        adjusted_position_3D = current_estimated_positions_single[-1] + adjusted_vel_3D
+                        adjusted_position_2D = self.particle_projection(self.alpha, adjusted_position_3D)
+
+                        # # now update the estimated position
+                        # if previous_particle_id not in self.particleData_3D:
+                        #     self.particleData_3D[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                        #     self.particleData_3D[previous_particle_id]['coords'].append(current_estimated_positions_single[:-1])
+                        #     self.particleData_3D[previous_particle_id]['snapshotIndexList'] = self.particleData_2D[previous_particle_id]['snapshotIndexList']
+                        #     self.particleData_3D[previous_particle_id]['snapshotIndexSet'] = self.particleData_2D[previous_particle_id]['snapshotIndexSet']
+                            
+                            
+                        # self.particleData_3D[previous_particle_id]['coords'].append(current_estimated_positions_single[-1] + adjusted_vel_3D)
+
+                        # # add the new positions with the old, and then take average
+                        # new_positions[:len(last_positions), :] = (new_positions[:len(last_positions), :] + last_positions) / 2
+                        # positions_predicted[proj_used_index:proj_used_index + new_positions.shape[0], :] = new_positions
+                        print("adjusted_position_2D: ",adjusted_position_2D)
+                        final_xy = adjusted_position_2D
+
+ 
+
+                    else:
+                        print("not enough data to do the reconstruction, use 2D historical velocity instead")
+                        # calculate position from learning factor
+                        learning_rate_2D = self.learning_rate_2D
+                        exploitation_rate_2D = 1 - learning_rate_2D
+                        final_xy = estimated_vel_from_historical_velocity*exploitation_rate_2D + observed_vel*learning_rate_2D + previous_shot[previous_index]
+                        print("final_xy: ", final_xy)
+                    
+                    self.particleData_2D[previous_particle_id]['coords'].append(final_xy)
+                        # modify shot data to keep the consistency
+                    self.shotData[self.current_snapShotIndex][current_index] = final_xy
+                
+                else:
+                    self.particleData_2D[previous_particle_id]['coords'].append(current_particle_to_match)
+                
             else:
-                self.particleData[previous_particle_id]['coords'].append(current_particle_to_match)
+                self.particleData_2D[previous_particle_id]['coords'].append(current_particle_to_match)
 
     
-            self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
-            self.particleData[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
+            self.particleData_2D[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
+            
+            self.particleData_2D[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
 
-            # print("particle id to be matched: ",previous_particle_id)
-            # print("particleData at matching particles: ",self.particleData[previous_particle_id])
             matched_particles_id.append(previous_particle_id)
-            # print("matched_particles_id: ",matched_particles_id)
+
 
  
         
@@ -277,12 +406,12 @@ class ParticlePathFinder:
             # create new unique particles and save them 
             for particle in current_shot_remain:
                 previous_particle_id = self.assign_particle_id()
-                if previous_particle_id not in self.particleData:
-                    self.particleData[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                if previous_particle_id not in self.particleData_2D:
+                    self.particleData_2D[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
                     
-                self.particleData[previous_particle_id]['coords'].append(particle)
-                self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
-                self.particleData[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
+                self.particleData_2D[previous_particle_id]['coords'].append(particle)
+                self.particleData_2D[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
+                self.particleData_2D[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
 
         # if the new snapshot has less particles than the previous one
         elif len(current_shot_remain) < len(previous_shot_remain):
@@ -301,7 +430,7 @@ class ParticlePathFinder:
                     # print("closest_neighbor_particle_id: ",closest_neighbor_particle_id)
                     relativeIndex = self.find_relative_snapshotIndex(closest_neighbor_particle_id, self.current_snapShotIndex)
                     # print(relativeIndex)
-                    closest_neighbor_current_xy = self.particleData[closest_neighbor_particle_id]['coords'][relativeIndex]
+                    closest_neighbor_current_xy = self.particleData_2D[closest_neighbor_particle_id]['coords'][relativeIndex]
                     # print("closest_neighbor_current_xy: ",closest_neighbor_current_xy)
                     # closest_neighbor_previous_xy = self.get_coordinates_by_snapshot(closest_neighbor_particle_id, self.current_snapShotIndex - 1)
                     # Calculate the difference between current and previous coordinates (c-p)
@@ -312,13 +441,13 @@ class ParticlePathFinder:
 
 
                 else:
-                    previous_xy = self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - 1)]
+                    previous_xy = self.particleData_2D[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - 1)]
                     # historical velocity strategy
                     estiamted_xy = self.historicalLinearVelocity(previous_particle_id,10,0.8) + previous_xy
 
-                self.particleData[previous_particle_id]['coords'].append(estiamted_xy)
-                self.particleData[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
-                self.particleData[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
+                self.particleData_2D[previous_particle_id]['coords'].append(estiamted_xy)
+                self.particleData_2D[previous_particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
+                self.particleData_2D[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
                 self.shotData[self.current_snapShotIndex].append(np.array(estiamted_xy))
 
 
@@ -327,7 +456,7 @@ class ParticlePathFinder:
         last10Coordiantes = []
 
         for i in range (1,num_of_snapshots_to_check + 1):
-            last10Coordiantes.append(self.particleData[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - i)])
+            last10Coordiantes.append(self.particleData_2D[previous_particle_id]['coords'][self.find_relative_snapshotIndex(previous_particle_id, self.current_snapShotIndex - i)])
                         # k = k**2
                         
         velocity_array = np.diff(np.array(last10Coordiantes), axis=0)
@@ -346,6 +475,7 @@ class ParticlePathFinder:
         return final_velocity/k
 
 
+
     def find_array_in_list(self,target, list_of_arrays):
         for idx, arr in enumerate(list_of_arrays):
             # print("equal between: ",target, " and ", arr, " is: ",np.array_equal(target, arr))
@@ -356,8 +486,8 @@ class ParticlePathFinder:
 
 
     def get_coordinates_by_snapshot(self, particle_id, snapshot_index):
-        if particle_id in self.particleData:
-            data = self.particleData[particle_id]
+        if particle_id in self.particleData_2D:
+            data = self.particleData_2D[particle_id]
             
             # Check if the given snapshot index exists in the list of snapshot indices
             if snapshot_index in data['snapshotIndexList']:
@@ -372,12 +502,13 @@ class ParticlePathFinder:
         return None
     
     def find_relative_snapshotIndex(self, particle_id, snapshot_index):
-        if particle_id in self.particleData:
-            data = self.particleData[particle_id]
+        if particle_id in self.particleData_2D:
+            data = self.particleData_2D[particle_id]
 
             # print("data with particle id, ",particle_id, " is: ",data)
             # print("snapshot_index: ",snapshot_index)
-            # print(self.particleData)
+            # if self.current_snapShotIndex > 141:
+            #     print(self.particleData_2D)
             
             # Check if the given snapshot index exists in the list of snapshot indices
             if snapshot_index in data['snapshotIndexList']:
@@ -396,7 +527,7 @@ class ParticlePathFinder:
     def extract_matrices(self):
         matrices = []
 
-        for particle_id, data in self.particleData.items():
+        for particle_id, data in self.particleData_2D.items():
             # Get the list of snapshot indices for this particle
             snapshot_indices = data['snapshotIndexList']
             
@@ -415,4 +546,16 @@ class ParticlePathFinder:
         return matrices
     
     def get_particle_data(self):
-        return self.particleData
+        return self.particleData_2D
+    
+    def particle_projection(self, alpha, r_0):
+        r_0_rotated=T(r_0,alpha)
+        _, _, _, _, _, SRD, RDD,_,_ = self.reconstruction_conditions
+        M_p = (SRD + RDD) / (SRD + r_0_rotated[1])
+        
+    
+        return np.array([M_p * r_0_rotated[0], M_p * r_0_rotated[2]])
+    
+
+
+    
