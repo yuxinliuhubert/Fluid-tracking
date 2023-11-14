@@ -11,6 +11,7 @@ class ParticlePathFinder:
         self.particle_id = 0
         self.particleData_2D = {}
         self.shotData = {}
+        self.shotData_original = {}
         self.learning_rate_2D = conditions[0]
         self.motion_randomness = conditions[1]
         self.learning_rate_3D = conditions[2]
@@ -27,108 +28,117 @@ class ParticlePathFinder:
     # input format, list of tuple of two elements (x,y)
     # use default again initlized in the constructor
     def append(self, snapshot):
-        # snapshot = snapshot.tolist()
-        # store the snapshot in a time sequence dictionary
-        # print("current_snapShotIndex: ",self.current_snapShotIndex)
-        # print("current shot: ",snapshot)
-        # if self.current_snapShotIndex != 0:
-        #     print("previous shot: ", self.shotData[self.current_snapShotIndex - 1])
-
-    
         if self.current_snapShotIndex not in self.shotData:
             self.shotData[self.current_snapShotIndex] = snapshot
+        
+        if self.current_snapShotIndex not in self.shotData_original:
+            self.shotData_original[self.current_snapShotIndex] = snapshot
         
         if self.current_snapShotIndex == 0:
             self.save_initial_particles(snapshot)
         else:
-            # match previous particles to current
-
             self.match_previous_particle_to_current(snapshot)
-
-        # print("particleData: ",self.particleData)
 
         self.current_snapShotIndex += 1
 
 
-    def find_closest_particle(self, particle, shot, closest_rank=1):
-
-        distances = np.linalg.norm(shot - particle, axis=1)
-
-        minDistanceIndex = np.argmin(distances)
-
-        if closest_rank > 1:
-            for i in range(closest_rank - 1):
-                minDistanceIndex = np.argmin(np.delete(distances, minDistanceIndex))
-        return minDistanceIndex
-    
+# Particle ID search and assignment
     def assign_particle_id(self):
+        """
+        Assigns a unique ID to a particle and returns the ID.
+
+        Returns:
+        int: The unique ID assigned to the particle.
+        """
         returnID = self.particle_id
         self.particle_id += 1
         return returnID
+
+    def find_closest_particle(self, particle, shot, closest_rank=1):
+            """
+            Finds the index of the closest particle to a given shot.
+
+            Args:
+                particle (numpy.ndarray): An array of particle positions.
+                shot (numpy.ndarray): An array of shot positions.
+                closest_rank (int, optional): The rank of the closest particle to find. Defaults to 1.
+
+            Returns:
+                int: The index of the closest particle.
+            """
+            distances = np.linalg.norm(shot - particle, axis=1)
+            minDistanceIndex = np.argmin(distances)
+            if closest_rank > 1:
+                for i in range(closest_rank - 1):
+                    minDistanceIndex = np.argmin(np.delete(distances, minDistanceIndex))
+            return minDistanceIndex
     
-    def get_particle_id_from_available_ids(self,particle, snapshotID,id_list):
-        target_coordinates = []
-        
-        for particle_id in id_list:
-            particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-            target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
-        closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
-        return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+    def get_particle_id(self, particle, snapshotID, closest_rank=1, tolerance=0.01):
+            """
+            Finds the ID of the particle closest to the given particle in the specified snapshot.
+
+            Args:
+            particle (numpy.ndarray): The particle to find the closest match for.
+            snapshotID (int): The ID of the snapshot to search for the particle in.
+            closest_rank (int): The rank of the closest particle to return. Default is 1.
+            tolerance (float): The maximum distance between the particles for them to be considered a match. Default is 0.01.
+
+            Returns:
+            tuple: The ID of the closest particle and its coordinates in the specified snapshot.
+
+            Raises:
+            KeyError: If the particle ID is not found.
+            """
+            target_snapshot = self.shotData[snapshotID]
+            closest_particle_id_in_shot = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]), closest_rank)
+
+            for particle_id in self.particleData_2D:
+                particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
+                distance = np.linalg.norm(target_snapshot[closest_particle_id_in_shot] - self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
+                if distance < tolerance:
+                    return particle_id, self.particleData_2D[particle_id]['coords'][particle_relative_shotID]
+
+            print("not found")
+            KeyError("particle_id not found")
+    
+    def get_particle_id_from_available_ids(self, particle, snapshotID, id_list):
+            """
+            Finds the closest particle ID in a given list of IDs to a given particle, based on their coordinates in a specific snapshot.
+
+            Args:
+                particle (int): The ID of the particle to find the closest match for.
+                snapshotID (int): The index of the snapshot to use for comparing particle coordinates.
+                id_list (list): A list of particle IDs to search for a match in.
+
+            Returns:
+                tuple: A tuple containing the ID of the closest matching particle and its coordinates in the specified snapshot.
+            """
+            target_coordinates = []
+            
+            for particle_id in id_list:
+                particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
+                target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
+            closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
+            return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+
 
 
     def get_particle_id_from_unmatched_ids(self,particle, snapshotID,matched_id_list):
         id_list = list(range(0, len(self.particleData_2D)))
-        # print("id_list before operation: ",id_list)
-        # print("matched_id_list: ",matched_id_list)
+
         for id in matched_id_list:
             id_list.remove(id)
-
-        # print("id_list: ",id_list)
 
         target_coordinates = []
         for particle_id in id_list:
             particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-            # print("particle_relative_shotID: ",particle_relative_shotID)
             target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
-        # print("target_coordinates: ",target_coordinates)
         closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
         
         return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
 
     
-    def get_particle_id(self, particle,snapshotID, closest_rank=1,tolerance=0.01):
-        target_snapshot = self.shotData[snapshotID]
-        closest_particle_id_in_shot = self.find_closest_particle(particle, np.array(self.shotData[snapshotID]),closest_rank)
-
-        # print("particle in get particle id: ",particle)
-        # print("closest_particle_coor: ",closest_particle_id_in_shot)
-        # print("target_snapshot: ",target_snapshot)
-        # print("particleData with id: ",self.particleData[closest_particle_id_in_shot])
-        # print("snapshotID relative: ",particle_relative_shotID)
-        # print("particleData on this shot: ",self.particleData[closest_particle_id_in_shot]['coords'][particle_relative_shotID])
-        for particle_id in self.particleData_2D:
-
-            # print("iterating at particle_id: ",particle_id)
-            # print("particleData_individual: ", self.particleData[particle_id]['coords'][snapshotID])
-            # print("target_snapshot[closest_particle_id_in_shot]: ",target_snapshot[closest_particle_id_in_shot])
-            # print("self.particleData[particle_id]['coords'][snapshotID]: ",self.particleData[particle_id]['coords'])
-
-            particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-            distance = np.linalg.norm(target_snapshot[closest_particle_id_in_shot] - self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
-            # print("particle_relative_shotID: ",particle_relative_shotID)    
-            if distance < tolerance:
-                # print("found the particle id: ",particle_id)
-                # particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-                # print("particle_relative_shotID: ",particle_relative_shotID)
-                print(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
-            
-                return particle_id, self.particleData_2D[particle_id]['coords'][particle_relative_shotID]
-            
-
-                
-        print("not found")
-        print("orignal particle: ", target_snapshot[closest_particle_id_in_shot], " minus: ", self.particleData_2D['coords'][-1])
-        KeyError("particle_id not found")
+    
 
     
     def save_initial_particles(self, snapshot):
@@ -555,6 +565,8 @@ class ParticlePathFinder:
         
     
         return np.array([M_p * r_0_rotated[0], M_p * r_0_rotated[2]])
+    
+    # def reject(particle_id: int, )
     
 
 
