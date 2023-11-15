@@ -5,7 +5,22 @@ from Phase4_trace_3d import Phase4_trace_3d
 # make sure we make enough defensive copies of the data
 class ParticlePathFinder:
 
-    def __init__(self, alpha,conditions, reconstruction_conditions) -> None:
+
+    def __init__(self, alpha, conditions, reconstruction_conditions) -> None:
+        """
+        Initializes a ParticlePathFinder object with the given parameters.
+
+        Args:
+        - alpha (float): the alpha value used in the particle path finding algorithm
+        - conditions (list): a list of conditions used in the particle path finding algorithm
+            - learning_rate_2D (float): the learning rate used in the 2D particle path finding algorithm
+            - motion_randomness (float): the motion randomness used in the particle path finding algorithm
+            - learning_rate_3D (float): the learning rate used in the 3D particle path finding algorithm
+        - reconstruction_conditions (list): a list of conditions used in the particle path finding algorithm
+            - NOS (int): the number of sections used in the particle path finding algorithm
+            - NOS_per_section (int): the number of particles per section used in the particle path finding algorithm
+        """
+
         self.alpha = alpha
         self.current_snapShotIndex = 0
         self.particle_id = 0
@@ -123,101 +138,153 @@ class ParticlePathFinder:
 
 
 
-    def get_particle_id_from_unmatched_ids(self,particle, snapshotID,matched_id_list):
-        id_list = list(range(0, len(self.particleData_2D)))
+    def get_particle_id_from_unmatched_ids(self, particle, snapshotID, matched_id_list):
+            """
+            Finds the closest particle ID in a given snapshot that has not been matched with any other particle IDs.
 
-        for id in matched_id_list:
-            id_list.remove(id)
+            Args:
+                particle (dict): Dictionary containing the coordinates of the particle to match.
+                snapshotID (int): The snapshot index to search for the closest particle.
+                matched_id_list (list): List of particle IDs that have already been matched with other particles.
 
-        target_coordinates = []
-        for particle_id in id_list:
-            particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
-            target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
-        closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
-        
-        return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
+            Returns:
+                tuple: A tuple containing the closest particle ID and its coordinates in the given snapshot.
+            """
+            id_list = list(range(0, len(self.particleData_2D)))
+
+            for id in matched_id_list:
+                id_list.remove(id)
+
+            target_coordinates = []
+            for particle_id in id_list:
+                particle_relative_shotID = self.find_relative_snapshotIndex(particle_id, snapshotID)
+                target_coordinates.append(self.particleData_2D[particle_id]['coords'][particle_relative_shotID])
+            closest_particle_id_in_shot = id_list[self.find_closest_particle(particle, np.array(target_coordinates))]
+            
+            return closest_particle_id_in_shot, self.particleData_2D[closest_particle_id_in_shot]['coords'][particle_relative_shotID]
 
     
-    
-
     
     def save_initial_particles(self, snapshot):
-        for particle in snapshot:
-            particle_id = self.assign_particle_id()
-            # if self.paricleData is None:
-            #     self.paricleData = {particle_id: particle}
-            if particle_id not in self.particleData_2D:
-                self.particleData_2D[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
-                
-            self.particleData_2D[particle_id]['coords'].append(particle)
-            self.particleData_2D[particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
-            self.particleData_2D[particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
+            """
+            Saves the initial particles in the particleData_2D dictionary along with their coordinates and snapshot index.
+
+            Args:
+                snapshot (list): A list of particles in the current snapshot.
+
+            Returns:
+                None
+            """
+            for particle in snapshot:
+                particle_id = self.assign_particle_id()
+                if particle_id not in self.particleData_2D:
+                    self.particleData_2D[particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
+                    
+                self.particleData_2D[particle_id]['coords'].append(particle)
+                self.particleData_2D[particle_id]['snapshotIndexList'].append(self.current_snapShotIndex)
+                self.particleData_2D[particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
 
 
 
 
     def rank_particle_distances(self, previous_snapshot, current_snapshot, search_radius):
-        # turn previous snapshot into a N by 2 matrix
-        previous_snapshot = np.array(previous_snapshot).reshape(-1,2)
+                    """
+                    Ranks the particles in the current snapshot based on their distance to the particles in the previous snapshot.
 
-        # grab the x axis
-        previous_x = previous_snapshot[:,0]
-        # grab the y axis
-        previous_y = previous_snapshot[:,1]
+                    Args:
+                    - previous_snapshot: A list of tuples representing the x and y coordinates of particles in the previous snapshot.
+                    - current_snapshot: A list of tuples representing the x and y coordinates of particles in the current snapshot.
+                    - search_radius: The maximum distance between two particles for them to be considered "close".
 
-        # turn current snapshot into a N by 2 matrix
-        current_snapshot = np.array(current_snapshot).reshape(-1,2)
+                    Returns:
+                    - A heap queue containing tuples of the form (distance, current_particle_index, previous_particle_index), where
+                        distance is the distance between the current particle and the closest particle in the previous snapshot, and
+                        current_particle_index and previous_particle_index are the indices of the current particle and the closest particle
+                        in the previous snapshot, respectively.
+                    """
+                    # turn previous snapshot into a N by 2 matrix
+                    previous_snapshot = np.array(previous_snapshot).reshape(-1,2)
 
-        # grab the x axis
-        current_x = current_snapshot[:,0]
-        # grab the y axis
-        current_y = current_snapshot[:,1]
+                    # grab the x axis
+                    previous_x = previous_snapshot[:,0]
+                    # grab the y axis
+                    previous_y = previous_snapshot[:,1]
 
-        # get the large matrix to fix the case where there are different number of particles in the previous and current snapshot
-        x_large_matrix = np.tile(previous_x, (len(current_x), 1)) - np.tile(current_x, (len(previous_x), 1)).T
-        y_large_matrix = np.tile(previous_y, (len(current_y), 1)) - np.tile(current_y, (len(previous_y), 1)).T
+                    # turn current snapshot into a N by 2 matrix
+                    current_snapshot = np.array(current_snapshot).reshape(-1,2)
 
-        # print("x_large_matrix: ",x_large_matrix)
-        # print("y_large_matrix: ",y_large_matrix)
+                    # grab the x axis
+                    current_x = current_snapshot[:,0]
+                    # grab the y axis
+                    current_y = current_snapshot[:,1]
 
-        # get the distance matrix
-        distance_matrix = np.sqrt(x_large_matrix**2 + y_large_matrix**2)
-        # print("distance_matrix: ",distance_matrix)
+                    # get the large matrix to fix the case where there are different number of particles in the previous and current snapshot
+                    x_large_matrix = np.tile(previous_x, (len(current_x), 1)) - np.tile(current_x, (len(previous_x), 1)).T
+                    y_large_matrix = np.tile(previous_y, (len(current_y), 1)) - np.tile(current_y, (len(previous_y), 1)).T
 
-        # create a heap queue to store the ranked particles
-        ranked_particle_heapq = []
+                    # print("x_large_matrix: ",x_large_matrix)
+                    # print("y_large_matrix: ",y_large_matrix)
 
-        # Get the sorted indices of the flattened distance_matrix
-        sorted_indices = np.argsort(distance_matrix.ravel())
+                    # get the distance matrix
+                    distance_matrix = np.sqrt(x_large_matrix**2 + y_large_matrix**2)
+                    # print("distance_matrix: ",distance_matrix)
 
-        # Convert the flattened indices to 2D row and column indices
-        row_col_indices = np.unravel_index(sorted_indices, distance_matrix.shape)
+                    # create a heap queue to store the ranked particles
+                    ranked_particle_heapq = []
 
-        # Print the values in distance_matrix in ascending order along with their row and column indices
-        for i in range(len(sorted_indices)):
-            row, col = row_col_indices[0][i], row_col_indices[1][i]
-            # print(f"Value: {distance_matrix[row, col]}, Row: {row}, Col: {col}")
-            distance = distance_matrix[row, col]
-            # store the closest particles together. row is the index of the curret particle, col is the index of the previous particle
-            heapq.heappush(ranked_particle_heapq, (distance, row, col))
-            # print("original ranked_particle_heapq: ",len(ranked_particle_heapq))
+                    # Get the sorted indices of the flattened distance_matrix
+                    sorted_indices = np.argsort(distance_matrix.ravel())
 
-        return ranked_particle_heapq
+                    # Convert the flattened indices to 2D row and column indices
+                    row_col_indices = np.unravel_index(sorted_indices, distance_matrix.shape)
+
+                    # Print the values in distance_matrix in ascending order along with their row and column indices
+                    for i in range(len(sorted_indices)):
+                            row, col = row_col_indices[0][i], row_col_indices[1][i]
+                            # print(f"Value: {distance_matrix[row, col]}, Row: {row}, Col: {col}")
+                            distance = distance_matrix[row, col]
+                            # store the closest particles together. row is the index of the curret particle, col is the index of the previous particle
+                            heapq.heappush(ranked_particle_heapq, (distance, row, col))
+                            # print("original ranked_particle_heapq: ",len(ranked_particle_heapq))
+
+                    return ranked_particle_heapq
             
 
 
-
-
     def match_previous_particle_to_current(self, current_shot):
+        
+        """
+        Matches particles from the previous snapshot to the current snapshot based on their distances.
+        If the motion randomness is too high, it conducts a reconstruction to verify if the point is valid.
+        If there is not enough data to do the reconstruction, it uses 2D historical velocity instead.
+        
+        Args:
+        - current_shot: a numpy array of shape (n, 2) representing the current snapshot of particles
+        
+        Returns:
+        - None
+        """
+
 
         def is_motion_random(historical_vel, observed_vel, motion_randomness):
+            """
+            Determines if the motion of a particle is random based on its historical velocity and observed velocity.
+
+            Args:
+                historical_vel (float or numpy.ndarray): The historical velocity of the particle.
+                observed_vel (float or numpy.ndarray): The observed velocity of the particle.
+                motion_randomness (float): The threshold for determining if the motion is random.
+
+            Returns:
+                bool: True if the motion is random, False otherwise.
+            """
             threshold = 1e-6
             is_random = False
             if np.isscalar(historical_vel):
                 length_of_historical_vel = 1
             else:
                 length_of_historical_vel = len(historical_vel)
-    
+
             for i in range(length_of_historical_vel):
                 if np.isscalar(observed_vel):
                     compare_observe_vel = observed_vel
@@ -234,22 +301,20 @@ class ParticlePathFinder:
                     x = abs(compare_historical_vel - compare_observe_vel) > motion_randomness
                 else:
                     x = abs(compare_historical_vel - compare_observe_vel) > motion_randomness
-                
+
                 if x:
                     is_random = True
                     break
 
             return is_random
 
+
         previous_shot = self.shotData[self.current_snapShotIndex - 1]
 
         # create defensive copies of the previous and current shots so we can delete items to keep track without affecting the original data
         previous_shot_remain = previous_shot.copy()
-        
         current_shot_remain = current_shot.copy()
-
-        
-
+    
         # get the ranked list of particles
         ranked_particle_list = self.rank_particle_distances(previous_shot_remain, current_shot_remain, search_radius=10)
 
@@ -258,8 +323,7 @@ class ParticlePathFinder:
 
         # while there are still particles unmatched, we keep matching
         while len(previous_shot_remain) > 0 and len(current_shot_remain) > 0:
-            
-
+        
 
             # get the closest particle
             closest_particles = heapq.heappop(ranked_particle_list)
@@ -298,20 +362,13 @@ class ParticlePathFinder:
 
 
             if previous_particle_id not in self.particleData_2D:
-                self.particleData_2D[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set()}
-
-            
-
+                self.add_to_particle_data(previous_particle_id)
 
             if self.current_snapShotIndex > 10:
                 
-
                 estimated_vel_from_historical_velocity = self.historicalLinearVelocity(previous_particle_id, 10, discount_factor=0.9)
                 
                 observed_vel = current_shot[current_index] - previous_shot[previous_index]
-
-
-
                 
                 if is_motion_random(estimated_vel_from_historical_velocity, observed_vel, self.motion_randomness):
 
@@ -326,12 +383,9 @@ class ParticlePathFinder:
 
                         # take the previous NOS_per_section data to do the reconstruction for comparison
 
-                        # print()
-
                         previous_2D_shots_selected = self.particleData_2D[previous_particle_id]['coords'][previous_relative_index - self.NOS_per_section : previous_relative_index]
                         print("length of previous_2D_shots_selected: ",len(previous_2D_shots_selected))
 
-                        # 
                         self.reconstruction_conditions[2] = self.NOS
                         previous_estimated_positions_single = Phase4_trace_3d(self.reconstruction_conditions, np.array(self.particleData_2D[previous_particle_id]['coords'][:]))
 
@@ -349,7 +403,6 @@ class ParticlePathFinder:
                         # take the last 10 rows and all columns
                         historical_vel_3D = np.mean(np.diff(previous_estimated_positions_single[-10:,:], axis=0))
         
-
                         # re-calculate the final position if adjustment is needed
                         adjusted_vel_3D = observed_vel_3D
                         j = 0
@@ -460,6 +513,9 @@ class ParticlePathFinder:
                 self.particleData_2D[previous_particle_id]['snapshotIndexSet'].add(self.current_snapShotIndex)
                 self.shotData[self.current_snapShotIndex].append(np.array(estiamted_xy))
 
+    def add_to_particle_data(self, previous_particle_id):
+        self.particleData_2D[previous_particle_id] = {'coords': [], 'snapshotIndexList': [], 'snapshotIndexSet': set(), 'evaluation_state': int}
+
 
     # return historical linear velocity
     def historicalLinearVelocity(self, previous_particle_id, num_of_snapshots_to_check, discount_factor=1, direction="backward"):
@@ -566,7 +622,12 @@ class ParticlePathFinder:
     
         return np.array([M_p * r_0_rotated[0], M_p * r_0_rotated[2]])
     
-    # def reject(particle_id: int, )
+    # def rejectList(self, particle_id_list): 
+
+
+    # def reject(self, particle_id, )
+        
+    # def resort()
     
 
 

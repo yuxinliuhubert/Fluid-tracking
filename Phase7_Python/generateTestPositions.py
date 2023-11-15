@@ -41,8 +41,8 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
 
 import numpy as np
 # Modified initial positions for particles A and B
-initial_position_A = [0, 0, 0]  # [x, y, z] (center of the semi-circle for particle A)
-initial_position_B = [0.2, 0, 0]  # [x, y, z] (center of the semi-circle for particle B)
+initial_position_A = [0, 0, 4]  # [x, y, z] (center of the semi-circle for particle A)
+initial_position_B = [3, 5,-3]  # [x, y, z] (center of the semi-circle for particle B)
 radius = 0.1  # Radius of the semi-circle
 
 def get_velocity_function(particle_id):
