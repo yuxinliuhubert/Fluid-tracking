@@ -19,52 +19,6 @@ def rotation(r1, alpha):#why -alpha?
     r2 = np.matmul(rotation_matrix, r1)#does order matter?
     return r2
 
-# def generateTestPositions(vel_expression, initial_position_3d, conditions):
-#     noise, delta_T, NOS, theta_degree, _, SOD, ODD,_,_ = conditions
-#     theta = theta_degree / 180 * np.pi
-
-#     r0_0 = initial_position_3d
-#     real_positions = np.zeros((NOS, 3))
-#     real_positions[0,:] = initial_position_3d
-#     M_p = (SOD + ODD) / (SOD + r0_0[1])
-
-#     x_proj = np.zeros(NOS)
-#     z_proj = np.zeros(NOS)
-
-#     x_proj[0] = M_p * r0_0[0] + np.random.randn() * noise / 2 #calculating first projection
-#     z_proj[0] = M_p * r0_0[2] + np.random.randn() * noise / 2 #calculating first projection
-
-#     for k in range(1, NOS):
-#         r0_k = r0_0 + np.array([
-#             integrate.quad(lambda t: vel_expression(t)[i], 0, delta_T * k)[0]
-#             for i in range(len(initial_position_3d)) #number of particles
-#         ])
-#         real_positions[k,:] = r0_k
-
-#         r_now = rotation(r0_k, theta * k)
-#         M_p = (SRD + RDD) / (SRD + r_now[1])
-
-#         x_proj[k] = M_p * r_now[0] + np.random.randn() * noise / 2
-#         z_proj[k] = M_p * r_now[2] + np.random.randn() * noise / 2
-
-#     xz_proj = np.column_stack((x_proj, z_proj))
-
-#     return xz_proj, real_positions
-
-
-# def get_velocity_function(particle_id):
-    # initial_position_A = [0, 0, 0]  # [x, y, z] (center of the semi-circle for particle A)
-    # initial_position_B = [0.2, 0, 0]  # [x, y, z] (center of the semi-circle for particle B)
-    # radius = 0.1  # Radius of the semi-circle
-#     if particle_id == 0:
-#         # Particle A moves along a semi-circle going upwards in the xz-plane
-#         return lambda t: [radius * np.cos(np.pi * t), 0, radius * np.sin(np.pi * t)]
-#     elif particle_id == 1:
-#         # Particle B moves along a semi-circle going downwards in the xz-plane
-#         return lambda t: [-radius * np.cos(np.pi * t), 0, -radius * np.sin(np.pi * t)]
-#     else:
-#         raise ValueError("Invalid particle_id.")
-
 
 
 #%%
@@ -821,7 +775,7 @@ class pf:
  
 
                     else:
-                        print("not enough data to do the reconstruction, use 2D historical velocity instead")
+                        print("not enough data to do the reconstruction or feature disabled, use 2D historical velocity instead")
                         # calculate position from learning factor
                         if self.learning_rate_corrected:
                             learning_rates_2D = self.corrected_learning_rates_data[previous_particle_id]
@@ -1135,7 +1089,7 @@ def rename_files_replace_space(directory_path):
 # columnIndex = 0
 
 theta_degrees = 1.8
-# # Ai recognition caller
+
 alpha = np.radians(theta_degrees)  # Example rotation angle in radians
 
 learning_rate_2D =0.3
@@ -1153,7 +1107,7 @@ path_finder = pf(alpha,rates_conditions,conditions)
 # print(os.listdir("Data_3particles"))
 folderName = "Phase7_Python/5-Nov-23"
 sorted_filenames = sorted(os.listdir(folderName), key=lambda x: int(x.split('Shot')[1].split('.csv')[0]))
-print(sorted_filenames)
+# print(sorted_filenames)
 k = 0
 for file in sorted_filenames:
     
