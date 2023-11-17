@@ -29,8 +29,8 @@ colormap(jet);
 
 function [corrected_proj]=offset(proj)
     corrected_proj=proj;
-    corrected_proj(1)=proj(1)-0;
+        corrected_proj(1)=proj(1)-243.5*0.172;
+    corrected_proj(2)=proj(2)-97.5*0.172;
 
 end
-
 

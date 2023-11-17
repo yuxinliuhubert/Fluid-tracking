@@ -12,7 +12,7 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
     r0_0 = initial_position_3d
     real_positions = np.zeros((NOS, 3))
     real_positions[0,:] = initial_position_3d
-    M_p = (SRD + RDD) / (SRD + r0_0[2])
+    M_p = (SRD + RDD) / (SRD + r0_0[1])
 
     x_proj = np.zeros(NOS)
     z_proj = np.zeros(NOS)
@@ -41,8 +41,13 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
 
 import numpy as np
 # Modified initial positions for particles A and B
+<<<<<<<< HEAD:Phase4/Variable_Speeds_Python/generateTestPositions.py
 initial_position_A = [0.2, 0.2, 0]  # [x, y, z] (center of the semi-circle for particle A)
 initial_position_B = [10, -15, 0]  # [x, y, z] (center of the semi-circle for particle B)
+========
+initial_position_A = [0, 0, 4]  # [x, y, z] (center of the semi-circle for particle A)
+initial_position_B = [3, 5,-3]  # [x, y, z] (center of the semi-circle for particle B)
+>>>>>>>> 337d6ad9fad7a8066a205f6769d529c5165f95ad:Phase7_Python/generateTestPositions.py
 radius = 0.1  # Radius of the semi-circle
 
 def get_velocity_function(particle_id):

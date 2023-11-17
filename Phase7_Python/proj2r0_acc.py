@@ -6,7 +6,7 @@ def proj2r0_acc_old(proj, theta, SRD, RDD, delta_T):
     row_number_A = 2 * NOS + 2 * (NOS - 1)
     col_number_A = 1 + 2 * NOS
     A = np.zeros((row_number_A, col_number_A))
-    b = np.zeros(row_number_A)
+    b = np.zeros((row_number_A,1))
     
     for j in range(NOS):
         xi_j, zi_j = proj[j]
@@ -47,7 +47,7 @@ def proj2r0_acc_old(proj, theta, SRD, RDD, delta_T):
         IoR += 2
         
     x, residuals, rank, s = np.linalg.lstsq(A, b, rcond=None)
-    r0 = [x[1], x[2], x[0], x[new_col_num-6], x[new_col_num-5], x[new_col_num-4], x[new_col_num-3], x[new_col_num-2], x[new_col_num-1]]
+    r0 =[x[1], x[2], x[0], x[new_col_num-6], x[new_col_num-5], x[new_col_num-4], x[new_col_num-3], x[new_col_num-2], x[new_col_num-1]]
     return r0
 
 def proj2r0_acc(xz_proj, theta, SOD, ODD, dt):
