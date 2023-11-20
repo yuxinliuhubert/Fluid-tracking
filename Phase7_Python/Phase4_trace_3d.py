@@ -2,11 +2,9 @@ import numpy as np
 from scipy import integrate
 from scipy.stats import norm
 from proj2r0_acc import proj2r0_acc
-<<<<<<<< HEAD:Phase4/Variable_Speeds_Python/Phase4_trace_3d.py
 from proj2r0_acc import proj2r0_stationary
-========
 from proj2r0_acc import proj2r0_acc_old
->>>>>>>> 337d6ad9fad7a8066a205f6769d529c5165f95ad:Phase7_Python/Phase4_trace_3d.py
+
 from T import T
 import time
 
