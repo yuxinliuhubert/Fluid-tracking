@@ -1,6 +1,5 @@
 import numpy as np
 from scipy import integrate
-from T import T
 
 
 # 
@@ -41,13 +40,10 @@ def generateTestPositions(vel_expression, initial_position_3d, conditions):
 
 import numpy as np
 # Modified initial positions for particles A and B
-<<<<<<<< HEAD:Phase4/Variable_Speeds_Python/generateTestPositions.py
-initial_position_A = [0.2, 0.2, 0]  # [x, y, z] (center of the semi-circle for particle A)
-initial_position_B = [10, -15, 0]  # [x, y, z] (center of the semi-circle for particle B)
-========
+
 initial_position_A = [0, 0, 4]  # [x, y, z] (center of the semi-circle for particle A)
 initial_position_B = [3, 5,-3]  # [x, y, z] (center of the semi-circle for particle B)
->>>>>>>> 337d6ad9fad7a8066a205f6769d529c5165f95ad:Phase7_Python/generateTestPositions.py
+
 radius = 0.1  # Radius of the semi-circle
 
 def get_velocity_function(particle_id):
@@ -81,3 +77,11 @@ if __name__ == "__main__":
     velocity = vel_func(t)
     print(f"Velocity of Particle {particle_id} at time t:", velocity)
 
+def T(r1, alpha):#why -alpha?
+    rotation_matrix = np.array([
+        [np.cos(-alpha), -np.sin(-alpha), 0],
+        [np.sin(-alpha),  np.cos(-alpha), 0],
+        [0,               0,              1]
+    ])
+    r2 = np.matmul(rotation_matrix, r1)#does order matter?
+    return r2
