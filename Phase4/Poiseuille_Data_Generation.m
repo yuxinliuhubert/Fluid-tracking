@@ -1,9 +1,9 @@
 %% Setup parameters
 format long
-SOD = 38; ODD = 462;NOS=180; noise =0.01; delta_T = 0.015;%detector operates at 68FPS
+SOD = 38; ODD = 462;NOS=400; noise =0.01; delta_T = 0.015;%detector operates at 68FPS
 pixel_res=0.172;%divide by this
 hold=1;% NOS to be held before rotation
-theta_degree=20; 
+theta_degree=1.8; 
 theta=theta_degree*pi/180;
 conditions=[noise, delta_T , NOS, theta, SOD , ODD,hold];
 %Fluids parameters
