@@ -2,7 +2,7 @@
 format long
 SOD = 38; ODD = 462;NOS=180; noise =0.01; delta_T = 0.015;%detector operates at 68FPS
 pixel_res=0.172;%divide by this
-hold=10;% NOS to be held before rotation
+hold=1;% NOS to be held before rotation
 theta_degree=20; 
 theta=theta_degree*pi/180;
 conditions=[noise, delta_T , NOS, theta, SOD , ODD,hold];
@@ -23,7 +23,7 @@ for i=1:NOP
 end
 xz_proj=xz_proj./pixel_res;
 % save the data with right sequence as CSV files
-folder = 'C:\Users\Crysis\Documents\Github\Fluid-tracking\Phase4\Poiseuille_Flow_Data';
+folder = 'C:\Users\19606\OneDrive\Documents\GitHub\Fluid-tracking\Phase4\Poiseuille_Flow_Data';
 for i=1:NOS
     filename_proj=[folder,'\Sorted\NOS',num2str(i-1),'.csv'];
     data_proj=xz_proj(i,:)';
