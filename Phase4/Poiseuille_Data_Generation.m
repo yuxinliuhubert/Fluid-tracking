@@ -9,6 +9,7 @@ conditions=[noise, delta_T , NOS, theta, SOD , ODD,hold];
 %Fluids parameters
 R=6.35/2; mu=1;dpdx=-1; %The radius of the test tube, viscocitym and pressure gradient
 %% Define starting xy positions and generate projections
+z_initial=[0,0.1,0.2,0.3,0.4];%inital z positions of the particles
 xy=[0,0; -0.5,0.5;-1,1 ; 1.5,1.5 ; 2,-2]; %The initial xy positions of different particles concatenated vertically
 NOP=size(xy,1);%NOP stands for number of particles
 xz_proj=zeros(NOS,2*NOP);real_positions=zeros(NOS,3*NOP);
@@ -16,7 +17,7 @@ for i=1:NOP
     x=xy(i,1);y=xy(i,2);
     r=sqrt(x^2+y^2);
     w=(-1/(4*mu))*dpdx*(R^2-r^2);
-    r_expression=@(t) [x,y,w*t];
+    r_expression=@(t) [x,y,w*t+z_initial(i)];
     [xz_proj(:,(2*i-1):2*i), real_positions(:,(3*i-2):3*i) ]=generateTestPositions(r_expression, conditions);
 
 end
