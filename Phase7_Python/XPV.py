@@ -83,7 +83,7 @@ theta_degrees = 1
 # rev = 2  # revolutions of camera for the entire process
 # NOS = int(rev * 360 / theta_degrees)
 NOS = 360
-NOS_per_section = 12  # must be larger than 5 to satisfy equations
+NOS_per_section = 140  # must be larger than 5 to satisfy equations
 delta_T = 0.1
 # delta_T = 1/68
 camera_speed = 0.5  # in Hz or revolution per second
@@ -98,7 +98,7 @@ offset = [0.0,0.0]
 # pixelResolution = 0.172  # every pixel is equal to mm
 pixelResolution = 1  # every pixel is equal to mm
 method = 'acceleration'
-dataPiling = 'serial'
+dataPiling = 'overlap'
 
 # Auto-calculations of the rest of the parameters derived from the setting above
 # delta_T = camera_speed * theta_degrees / 360

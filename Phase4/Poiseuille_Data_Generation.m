@@ -1,29 +1,30 @@
 %% Setup parameters
 format long
-SOD = 38; ODD = 462;NOS=400; noise =0.01; delta_T = 0.015;%detector operates at 68FPS
+SOD = 38; ODD = 462;NOS=400; noise =0.01; delta_T = 0.1;%detector operates at 68FPS
 pixel_res=0.172;%divide by this
 hold=1;% NOS to be held before rotation
-theta_degree=1.8; 
+theta_degree=1; 
 theta=theta_degree*pi/180;
 conditions=[noise, delta_T , NOS, theta, SOD , ODD,hold];
 %Fluids parameters
-R=6.35/2; mu=1;dpdx=-1; %The radius of the test tube, viscocitym and pressure gradient
+R=6.35/2; mu=1;dpdx=-0.1; %The radius of the test tube, viscocitym and pressure gradient
 %% Define starting xy positions and generate projections
-z_initial=[0,0.1,0.2,0.3,0.4];%inital z positions of the particles
-xy=[0,0; -0.5,0.5;-1,1 ; 1.5,1.5 ; 2,-2]; %The initial xy positions of different particles concatenated vertically
+z_initial=[-3];%inital z positions of the particles
+% xy=[0,0; -0.5,0.5;-1,1 ; 1.5,1.5 ; 2,-2]; %The initial xy positions of different particles concatenated vertically
+xy=[-1,2]; %The initial xy positions of different particles concatenated vertically
 NOP=size(xy,1);%NOP stands for number of particles
 xz_proj=zeros(NOS,2*NOP);real_positions=zeros(NOS,3*NOP);
 for i=1:NOP
     x=xy(i,1);y=xy(i,2);
     r=sqrt(x^2+y^2);
-    w=(-1/(4*mu))*dpdx*(R^2-r^2);
+    w=(-1/(4*mu))*dpdx*(R^2-r^2)
     r_expression=@(t) [x,y,w*t+z_initial(i)];
     [xz_proj(:,(2*i-1):2*i), real_positions(:,(3*i-2):3*i) ]=generateTestPositions(r_expression, conditions);
 
 end
 xz_proj=xz_proj./pixel_res;
 % save the data with right sequence as CSV files
-folder = 'C:\Users\19606\OneDrive\Documents\GitHub\Fluid-tracking\Phase4\Poiseuille_Flow_Data';
+folder = 'C:\Users\10032\Documents\GitHub\Fluid-tracking\Phase4\Poiseuille_Flow_Data';
 for i=1:NOS
     filename_proj=[folder,'\Sorted\NOS',num2str(i-1),'.csv'];
     data_proj=xz_proj(i,:)';
